@@ -1,5 +1,7 @@
 package com.slotwise.sw.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -13,12 +15,14 @@ public class Department {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String name;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "institute_id", nullable = false)
+    @JsonBackReference
     private Institute institute;
+    //The @ManyToOne annotation represents a relationship where many departments are associated with one institute. The field stores a reference to a single Institute object corresponding to the foreign key institute_id, not all institutes.
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -27,6 +31,7 @@ public class Department {
     private LocalDateTime updatedAt;
 
     @OneToMany(mappedBy = "department", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @JsonManagedReference
     private Set<User> users = new HashSet<>();
 
     @PrePersist

@@ -14,4 +14,10 @@ public interface DepartmentRepository extends JpaRepository<Department, Long> {
     List<Department> findByInstitute(Institute institute);
     List<Department> findByInstituteId(Long instituteId);
     boolean existsByName(String name);
+    
+    /**
+     * Check if department with given name exists in the specified institute
+     * Allows same department name across different institutes
+     */
+    boolean existsByNameAndInstituteId(String name, Long instituteId);
 }

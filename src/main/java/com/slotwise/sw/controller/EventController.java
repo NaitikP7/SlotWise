@@ -1,7 +1,8 @@
 package com.slotwise.sw.controller;
 
-import com.slotwise.sw.entity.Event;
-import com.slotwise.sw.repository.EventRepository;
+import com.slotwise.sw.dto.EventRequestDTO;
+import com.slotwise.sw.dto.EventResponseDTO;
+import com.slotwise.sw.service.EventService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,14 +18,14 @@ import java.util.Optional;
 public class EventController {
 
     @Autowired
-    private EventRepository eventRepository;
+    private EventService eventService;
 
     /**
      * Get all events
      */
     @GetMapping
-    public ResponseEntity<List<Event>> getAllEvents() {
-        List<Event> events = eventRepository.findAll();
+    public ResponseEntity<List<EventResponseDTO>> getAllEvents() {
+        List<EventResponseDTO> events = eventService.getAllEvents();
         return new ResponseEntity<>(events, HttpStatus.OK);
     }
 
@@ -32,8 +33,8 @@ public class EventController {
      * Get all active events
      */
     @GetMapping("/active")
-    public ResponseEntity<List<Event>> getActiveEvents() {
-        List<Event> events = eventRepository.findByActiveTrue();
+    public ResponseEntity<List<EventResponseDTO>> getActiveEvents() {
+        List<EventResponseDTO> events = eventService.getActiveEvents();
         return new ResponseEntity<>(events, HttpStatus.OK);
     }
 
@@ -41,8 +42,8 @@ public class EventController {
      * Get event by ID
      */
     @GetMapping("/{id}")
-    public ResponseEntity<Event> getEventById(@PathVariable Long id) {
-        Optional<Event> event = eventRepository.findById(id);
+    public ResponseEntity<EventResponseDTO> getEventById(@PathVariable Long id) {
+        Optional<EventResponseDTO> event = eventService.getEventById(id);
         return event.map(value -> new ResponseEntity<>(value, HttpStatus.OK))
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
@@ -51,30 +52,30 @@ public class EventController {
      * Create a new event
      */
     @PostMapping
-    public ResponseEntity<Event> createEvent(@RequestBody Event event) {
-        Event savedEvent = eventRepository.save(event);
-        return new ResponseEntity<>(savedEvent, HttpStatus.CREATED);
+    public ResponseEntity<EventResponseDTO> createEvent(@RequestBody EventRequestDTO requestDTO) {
+        try {
+            EventResponseDTO savedEvent = eventService.createEvent(requestDTO);
+            return new ResponseEntity<>(savedEvent, HttpStatus.CREATED);
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        } catch (RuntimeException e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     /**
      * Update an event
      */
     @PutMapping("/{id}")
-    public ResponseEntity<Event> updateEvent(@PathVariable Long id, @RequestBody Event eventDetails) {
-        Optional<Event> event = eventRepository.findById(id);
-        if (event.isPresent()) {
-            Event existingEvent = event.get();
-            existingEvent.setTitle(eventDetails.getTitle());
-            existingEvent.setDescription(eventDetails.getDescription());
-            existingEvent.setStartTime(eventDetails.getStartTime());
-            existingEvent.setEndTime(eventDetails.getEndTime());
-            existingEvent.setLocation(eventDetails.getLocation());
-            existingEvent.setActive(eventDetails.getActive());
-            
-            Event updatedEvent = eventRepository.save(existingEvent);
+    public ResponseEntity<EventResponseDTO> updateEvent(@PathVariable Long id, @RequestBody EventRequestDTO requestDTO) {
+        try {
+            EventResponseDTO updatedEvent = eventService.updateEvent(id, requestDTO);
             return new ResponseEntity<>(updatedEvent, HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        } catch (RuntimeException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
     /**
@@ -82,19 +83,20 @@ public class EventController {
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteEvent(@PathVariable Long id) {
-        if (eventRepository.existsById(id)) {
-            eventRepository.deleteById(id);
+        try {
+            eventService.deleteEvent(id);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        } catch (RuntimeException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
     /**
      * Find events by title
      */
     @GetMapping("/search/title")
-    public ResponseEntity<List<Event>> getEventsByTitle(@RequestParam String title) {
-        List<Event> events = eventRepository.findByTitleIgnoreCase(title);
+    public ResponseEntity<List<EventResponseDTO>> getEventsByTitle(@RequestParam String title) {
+        List<EventResponseDTO> events = eventService.getEventsByTitle(title);
         return new ResponseEntity<>(events, HttpStatus.OK);
     }
 
@@ -102,8 +104,8 @@ public class EventController {
      * Find events by location
      */
     @GetMapping("/search/location")
-    public ResponseEntity<List<Event>> getEventsByLocation(@RequestParam String location) {
-        List<Event> events = eventRepository.findByLocation(location);
+    public ResponseEntity<List<EventResponseDTO>> getEventsByLocation(@RequestParam String location) {
+        List<EventResponseDTO> events = eventService.getEventsByLocation(location);
         return new ResponseEntity<>(events, HttpStatus.OK);
     }
 
@@ -111,10 +113,10 @@ public class EventController {
      * Find events within a date range
      */
     @GetMapping("/search/date-range")
-    public ResponseEntity<List<Event>> getEventsBetweenDates(
+    public ResponseEntity<List<EventResponseDTO>> getEventsBetweenDates(
             @RequestParam("start") LocalDateTime startDate,
             @RequestParam("end") LocalDateTime endDate) {
-        List<Event> events = eventRepository.findEventsBetweenDates(startDate, endDate);
+        List<EventResponseDTO> events = eventService.getEventsBetweenDates(startDate, endDate);
         return new ResponseEntity<>(events, HttpStatus.OK);
     }
 
@@ -123,8 +125,10 @@ public class EventController {
      */
     @GetMapping("/count/active")
     public ResponseEntity<Long> countActiveEvents() {
-        long count = eventRepository.countByActiveTrue();
+        long count = eventService.countActiveEvents();
         return new ResponseEntity<>(count, HttpStatus.OK);
     }
 }
+
+
 

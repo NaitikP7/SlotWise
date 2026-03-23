@@ -1,6 +1,7 @@
 package com.slotwise.sw.controller;
 
-import com.slotwise.sw.entity.Venue;
+import com.slotwise.sw.dto.VenueRequestDTO;
+import com.slotwise.sw.dto.VenueResponseDTO;
 import com.slotwise.sw.service.VenueService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -22,8 +23,8 @@ public class VenueController {
      * Get all venues
      */
     @GetMapping
-    public ResponseEntity<List<Venue>> getAllVenues() {
-        List<Venue> venues = venueService.getAllVenues();
+    public ResponseEntity<List<VenueResponseDTO>> getAllVenues() {
+        List<VenueResponseDTO> venues = venueService.getAllVenues();
         return new ResponseEntity<>(venues, HttpStatus.OK);
     }
 
@@ -31,8 +32,8 @@ public class VenueController {
      * Get venue by ID
      */
     @GetMapping("/{id}")
-    public ResponseEntity<Venue> getVenueById(@PathVariable Long id) {
-        Optional<Venue> venue = venueService.getVenueById(id);
+    public ResponseEntity<VenueResponseDTO> getVenueById(@PathVariable Long id) {
+        Optional<VenueResponseDTO> venue = venueService.getVenueById(id);
         return venue.map(value -> new ResponseEntity<>(value, HttpStatus.OK))
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
@@ -41,18 +42,18 @@ public class VenueController {
      * Get venue by name
      */
     @GetMapping("/name/{name}")
-    public ResponseEntity<Venue> getVenueByName(@PathVariable String name) {
-        Optional<Venue> venue = venueService.getVenueByName(name);
+    public ResponseEntity<VenueResponseDTO> getVenueByName(@PathVariable String name) {
+        Optional<VenueResponseDTO> venue = venueService.getVenueByName(name);
         return venue.map(value -> new ResponseEntity<>(value, HttpStatus.OK))
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
     /**
-     * Get all venues by department
+     * Get all venues by institute
      */
-    @GetMapping("/department/{departmentId}")
-    public ResponseEntity<List<Venue>> getVenuesByDepartment(@PathVariable Long departmentId) {
-        List<Venue> venues = venueService.getVenuesByDepartment(departmentId);
+    @GetMapping("/institute/{instituteId}")
+    public ResponseEntity<List<VenueResponseDTO>> getVenuesByInstitute(@PathVariable Long instituteId) {
+        List<VenueResponseDTO> venues = venueService.getVenuesByInstitute(instituteId);
         return new ResponseEntity<>(venues, HttpStatus.OK);
     }
 
@@ -60,9 +61,9 @@ public class VenueController {
      * Create new venue
      */
     @PostMapping
-    public ResponseEntity<Venue> createVenue(@RequestBody Venue venue) {
+    public ResponseEntity<VenueResponseDTO> createVenue(@RequestBody VenueRequestDTO requestDTO) {
         try {
-            Venue createdVenue = venueService.createVenue(venue);
+            VenueResponseDTO createdVenue = venueService.createVenue(requestDTO);
             return new ResponseEntity<>(createdVenue, HttpStatus.CREATED);
         } catch (IllegalArgumentException e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -75,9 +76,9 @@ public class VenueController {
      * Update venue
      */
     @PutMapping("/{id}")
-    public ResponseEntity<Venue> updateVenue(@PathVariable Long id, @RequestBody Venue venueDetails) {
+    public ResponseEntity<VenueResponseDTO> updateVenue(@PathVariable Long id, @RequestBody VenueRequestDTO requestDTO) {
         try {
-            Venue updatedVenue = venueService.updateVenue(id, venueDetails);
+            VenueResponseDTO updatedVenue = venueService.updateVenue(id, requestDTO);
             return new ResponseEntity<>(updatedVenue, HttpStatus.OK);
         } catch (IllegalArgumentException e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);

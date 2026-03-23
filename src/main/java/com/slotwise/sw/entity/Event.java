@@ -1,7 +1,7 @@
 package com.slotwise.sw.entity;
 
 import jakarta.persistence.*;
-import org.apache.catalina.User;
+
 
 import java.time.LocalDateTime;
 
@@ -139,6 +139,22 @@ public class Event {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public User getOrganizer() {
+        return organizer;
+    }
+
+    public void setOrganizer(User organizer) {
+        this.organizer = organizer;
+    }
+
+    public Venue getVenue() {
+        return venue;
+    }
+
+    public void setVenue(Venue venue) {
+        this.venue = venue;
     }
 
     @Override

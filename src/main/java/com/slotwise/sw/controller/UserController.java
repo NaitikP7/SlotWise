@@ -1,6 +1,7 @@
 package com.slotwise.sw.controller;
 
-import com.slotwise.sw.entity.User;
+import com.slotwise.sw.dto.UserRequestDTO;
+import com.slotwise.sw.dto.UserResponseDTO;
 import com.slotwise.sw.entity.UserRole;
 import com.slotwise.sw.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,8 +24,8 @@ public class UserController {
      * Get all users
      */
     @GetMapping
-    public ResponseEntity<List<User>> getAllUsers() {
-        List<User> users = userService.getAllUsers();
+    public ResponseEntity<List<UserResponseDTO>> getAllUsers() {
+        List<UserResponseDTO> users = userService.getAllUsers();
         return new ResponseEntity<>(users, HttpStatus.OK);
     }
 
@@ -32,8 +33,8 @@ public class UserController {
      * Get user by ID
      */
     @GetMapping("/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable Long id) {
-        Optional<User> user = userService.getUserById(id);
+    public ResponseEntity<UserResponseDTO> getUserById(@PathVariable Long id) {
+        Optional<UserResponseDTO> user = userService.getUserById(id);
         return user.map(value -> new ResponseEntity<>(value, HttpStatus.OK))
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
@@ -42,8 +43,8 @@ public class UserController {
      * Get user by email
      */
     @GetMapping("/email/{email}")
-    public ResponseEntity<User> getUserByEmail(@PathVariable String email) {
-        Optional<User> user = userService.getUserByEmail(email);
+    public ResponseEntity<UserResponseDTO> getUserByEmail(@PathVariable String email) {
+        Optional<UserResponseDTO> user = userService.getUserByEmail(email);
         return user.map(value -> new ResponseEntity<>(value, HttpStatus.OK))
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
@@ -52,8 +53,8 @@ public class UserController {
      * Get all users by department
      */
     @GetMapping("/department/{departmentId}")
-    public ResponseEntity<List<User>> getUsersByDepartment(@PathVariable Long departmentId) {
-        List<User> users = userService.getUsersByDepartment(departmentId);
+    public ResponseEntity<List<UserResponseDTO>> getUsersByDepartment(@PathVariable Long departmentId) {
+        List<UserResponseDTO> users = userService.getUsersByDepartment(departmentId);
         return new ResponseEntity<>(users, HttpStatus.OK);
     }
 
@@ -61,8 +62,8 @@ public class UserController {
      * Get all users by role
      */
     @GetMapping("/role/{role}")
-    public ResponseEntity<List<User>> getUsersByRole(@PathVariable UserRole role) {
-        List<User> users = userService.getUsersByRole(role);
+    public ResponseEntity<List<UserResponseDTO>> getUsersByRole(@PathVariable UserRole role) {
+        List<UserResponseDTO> users = userService.getUsersByRole(role);
         return new ResponseEntity<>(users, HttpStatus.OK);
     }
 
@@ -70,8 +71,8 @@ public class UserController {
      * Get all active users
      */
     @GetMapping("/status/active")
-    public ResponseEntity<List<User>> getActiveUsers() {
-        List<User> users = userService.getActiveUsers();
+    public ResponseEntity<List<UserResponseDTO>> getActiveUsers() {
+        List<UserResponseDTO> users = userService.getActiveUsers();
         return new ResponseEntity<>(users, HttpStatus.OK);
     }
 
@@ -79,18 +80,18 @@ public class UserController {
      * Get all inactive users
      */
     @GetMapping("/status/inactive")
-    public ResponseEntity<List<User>> getInactiveUsers() {
-        List<User> users = userService.getInactiveUsers();
+    public ResponseEntity<List<UserResponseDTO>> getInactiveUsers() {
+        List<UserResponseDTO> users = userService.getInactiveUsers();
         return new ResponseEntity<>(users, HttpStatus.OK);
     }
 
     /**
-     * Create new user (default role is ADMIN)
+     * Create new user (default role is USER)
      */
     @PostMapping
-    public ResponseEntity<User> createUser(@RequestBody User user) {
+    public ResponseEntity<UserResponseDTO> createUser(@RequestBody UserRequestDTO requestDTO) {
         try {
-            User createdUser = userService.createUser(user);
+            UserResponseDTO createdUser = userService.createUser(requestDTO);
             return new ResponseEntity<>(createdUser, HttpStatus.CREATED);
         } catch (IllegalArgumentException e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -103,9 +104,9 @@ public class UserController {
      * Update user
      */
     @PutMapping("/{id}")
-    public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody User userDetails) {
+    public ResponseEntity<UserResponseDTO> updateUser(@PathVariable Long id, @RequestBody UserRequestDTO requestDTO) {
         try {
-            User updatedUser = userService.updateUser(id, userDetails);
+            UserResponseDTO updatedUser = userService.updateUser(id, requestDTO);
             return new ResponseEntity<>(updatedUser, HttpStatus.OK);
         } catch (IllegalArgumentException e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -131,9 +132,9 @@ public class UserController {
      * Activate user
      */
     @PutMapping("/{id}/activate")
-    public ResponseEntity<User> activateUser(@PathVariable Long id) {
+    public ResponseEntity<UserResponseDTO> activateUser(@PathVariable Long id) {
         try {
-            User activatedUser = userService.activateUser(id);
+            UserResponseDTO activatedUser = userService.activateUser(id);
             return new ResponseEntity<>(activatedUser, HttpStatus.OK);
         } catch (RuntimeException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -144,9 +145,9 @@ public class UserController {
      * Deactivate user
      */
     @PutMapping("/{id}/deactivate")
-    public ResponseEntity<User> deactivateUser(@PathVariable Long id) {
+    public ResponseEntity<UserResponseDTO> deactivateUser(@PathVariable Long id) {
         try {
-            User deactivatedUser = userService.deactivateUser(id);
+            UserResponseDTO deactivatedUser = userService.deactivateUser(id);
             return new ResponseEntity<>(deactivatedUser, HttpStatus.OK);
         } catch (RuntimeException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);

@@ -1,7 +1,7 @@
 package com.slotwise.sw.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
-
 import java.time.LocalDateTime;
 import java.util.Objects;
 
@@ -22,6 +22,7 @@ public class User {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "department_id", nullable = false)
+    @JsonBackReference
     private Department department;
 
     @Enumerated(EnumType.STRING)
@@ -56,7 +57,6 @@ public class User {
         this.email = email;
         this.password = password;
         this.department = department;
-        this.role = UserRole.ADMIN;  // Default to ADMIN
     }
 
     public User(String name, String email, String password, Department department, UserRole role) {

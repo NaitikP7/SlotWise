@@ -21,8 +21,8 @@ public class Venue {
     private String location;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "department_id", nullable = false)
-    private Department department;
+    @JoinColumn(name = "institute_id", nullable = false)
+    private Institute institute;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -45,11 +45,11 @@ public class Venue {
     public Venue() {
     }
 
-    public Venue(String name, Integer capacity, String location, Department department) {
+    public Venue(String name, Integer capacity, String location, Institute institute) {
         this.name = name;
         this.capacity = capacity;
         this.location = location;
-        this.department = department;
+        this.institute = institute;
     }
 
     // Getters and Setters
@@ -86,11 +86,19 @@ public class Venue {
     }
 
     public Department getDepartment() {
-        return department;
+        return null;
     }
 
     public void setDepartment(Department department) {
-        this.department = department;
+        // Deprecated - venue now belongs to Institute
+    }
+
+    public Institute getInstitute() {
+        return institute;
+    }
+
+    public void setInstitute(Institute institute) {
+        this.institute = institute;
     }
 
     public LocalDateTime getCreatedAt() {

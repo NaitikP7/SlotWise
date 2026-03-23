@@ -1,5 +1,6 @@
 package com.slotwise.sw.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -13,7 +14,8 @@ public class Institute {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
+
+    @Column(nullable=false, unique  = true)
     private String name;
 
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -23,6 +25,7 @@ public class Institute {
     private LocalDateTime updatedAt;
 
     @OneToMany(mappedBy = "institute", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @JsonManagedReference
     private Set<Department> departments = new HashSet<>();
 
     @PrePersist

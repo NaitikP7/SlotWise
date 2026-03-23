@@ -1,6 +1,7 @@
 package com.slotwise.sw.controller;
 
-import com.slotwise.sw.entity.Institute;
+import com.slotwise.sw.dto.InstituteRequestDTO;
+import com.slotwise.sw.dto.InstituteResponseDTO;
 import com.slotwise.sw.service.InstituteService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -22,8 +23,8 @@ public class InstituteController {
      * Get all institutes
      */
     @GetMapping
-    public ResponseEntity<List<Institute>> getAllInstitutes() {
-        List<Institute> institutes = instituteService.getAllInstitutes();
+    public ResponseEntity<List<InstituteResponseDTO>> getAllInstitutes() {
+        List<InstituteResponseDTO> institutes = instituteService.getAllInstitutes();
         return new ResponseEntity<>(institutes, HttpStatus.OK);
     }
 
@@ -31,8 +32,8 @@ public class InstituteController {
      * Get institute by ID
      */
     @GetMapping("/{id}")
-    public ResponseEntity<Institute> getInstituteById(@PathVariable Long id) {
-        Optional<Institute> institute = instituteService.getInstituteById(id);
+    public ResponseEntity<InstituteResponseDTO> getInstituteById(@PathVariable Long id) {
+        Optional<InstituteResponseDTO> institute = instituteService.getInstituteById(id);
         return institute.map(value -> new ResponseEntity<>(value, HttpStatus.OK))
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
@@ -41,8 +42,8 @@ public class InstituteController {
      * Get institute by name
      */
     @GetMapping("/name/{name}")
-    public ResponseEntity<Institute> getInstituteByName(@PathVariable String name) {
-        Optional<Institute> institute = instituteService.getInstituteByName(name);
+    public ResponseEntity<InstituteResponseDTO> getInstituteByName(@PathVariable String name) {
+        Optional<InstituteResponseDTO> institute = instituteService.getInstituteByName(name);
         return institute.map(value -> new ResponseEntity<>(value, HttpStatus.OK))
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
@@ -51,9 +52,9 @@ public class InstituteController {
      * Create new institute
      */
     @PostMapping
-    public ResponseEntity<Institute> createInstitute(@RequestBody Institute institute) {
+    public ResponseEntity<InstituteResponseDTO> createInstitute(@RequestBody InstituteRequestDTO requestDTO) {
         try {
-            Institute createdInstitute = instituteService.createInstitute(institute);
+            InstituteResponseDTO createdInstitute = instituteService.createInstitute(requestDTO);
             return new ResponseEntity<>(createdInstitute, HttpStatus.CREATED);
         } catch (IllegalArgumentException e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -64,9 +65,9 @@ public class InstituteController {
      * Update institute
      */
     @PutMapping("/{id}")
-    public ResponseEntity<Institute> updateInstitute(@PathVariable Long id, @RequestBody Institute instituteDetails) {
+    public ResponseEntity<InstituteResponseDTO> updateInstitute(@PathVariable Long id, @RequestBody InstituteRequestDTO requestDTO) {
         try {
-            Institute updatedInstitute = instituteService.updateInstitute(id, instituteDetails);
+            InstituteResponseDTO updatedInstitute = instituteService.updateInstitute(id, requestDTO);
             return new ResponseEntity<>(updatedInstitute, HttpStatus.OK);
         } catch (IllegalArgumentException e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);

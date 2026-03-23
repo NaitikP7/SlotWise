@@ -1,6 +1,7 @@
 package com.slotwise.sw.controller;
 
-import com.slotwise.sw.entity.Department;
+import com.slotwise.sw.dto.DepartmentRequestDTO;
+import com.slotwise.sw.dto.DepartmentResponseDTO;
 import com.slotwise.sw.service.DepartmentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -22,8 +23,8 @@ public class DepartmentController {
      * Get all departments
      */
     @GetMapping
-    public ResponseEntity<List<Department>> getAllDepartments() {
-        List<Department> departments = departmentService.getAllDepartments();
+    public ResponseEntity<List<DepartmentResponseDTO>> getAllDepartments() {
+        List<DepartmentResponseDTO> departments = departmentService.getAllDepartments();
         return new ResponseEntity<>(departments, HttpStatus.OK);
     }
 
@@ -31,8 +32,8 @@ public class DepartmentController {
      * Get department by ID
      */
     @GetMapping("/{id}")
-    public ResponseEntity<Department> getDepartmentById(@PathVariable Long id) {
-        Optional<Department> department = departmentService.getDepartmentById(id);
+    public ResponseEntity<DepartmentResponseDTO> getDepartmentById(@PathVariable Long id) {
+        Optional<DepartmentResponseDTO> department = departmentService.getDepartmentById(id);
         return department.map(value -> new ResponseEntity<>(value, HttpStatus.OK))
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
@@ -41,8 +42,8 @@ public class DepartmentController {
      * Get department by name
      */
     @GetMapping("/name/{name}")
-    public ResponseEntity<Department> getDepartmentByName(@PathVariable String name) {
-        Optional<Department> department = departmentService.getDepartmentByName(name);
+    public ResponseEntity<DepartmentResponseDTO> getDepartmentByName(@PathVariable String name) {
+        Optional<DepartmentResponseDTO> department = departmentService.getDepartmentByName(name);
         return department.map(value -> new ResponseEntity<>(value, HttpStatus.OK))
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
@@ -51,8 +52,8 @@ public class DepartmentController {
      * Get all departments by institute ID
      */
     @GetMapping("/institute/{instituteId}")
-    public ResponseEntity<List<Department>> getDepartmentsByInstitute(@PathVariable Long instituteId) {
-        List<Department> departments = departmentService.getDepartmentsByInstitute(instituteId);
+    public ResponseEntity<List<DepartmentResponseDTO>> getDepartmentsByInstitute(@PathVariable Long instituteId) {
+        List<DepartmentResponseDTO> departments = departmentService.getDepartmentsByInstitute(instituteId);
         return new ResponseEntity<>(departments, HttpStatus.OK);
     }
 
@@ -60,9 +61,9 @@ public class DepartmentController {
      * Create new department
      */
     @PostMapping
-    public ResponseEntity<Department> createDepartment(@RequestBody Department department) {
+    public ResponseEntity<DepartmentResponseDTO> createDepartment(@RequestBody DepartmentRequestDTO requestDTO) {
         try {
-            Department createdDepartment = departmentService.createDepartment(department);
+            DepartmentResponseDTO createdDepartment = departmentService.createDepartment(requestDTO);
             return new ResponseEntity<>(createdDepartment, HttpStatus.CREATED);
         } catch (IllegalArgumentException e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -75,9 +76,9 @@ public class DepartmentController {
      * Update department
      */
     @PutMapping("/{id}")
-    public ResponseEntity<Department> updateDepartment(@PathVariable Long id, @RequestBody Department departmentDetails) {
+    public ResponseEntity<DepartmentResponseDTO> updateDepartment(@PathVariable Long id, @RequestBody DepartmentRequestDTO requestDTO) {
         try {
-            Department updatedDepartment = departmentService.updateDepartment(id, departmentDetails);
+            DepartmentResponseDTO updatedDepartment = departmentService.updateDepartment(id, requestDTO);
             return new ResponseEntity<>(updatedDepartment, HttpStatus.OK);
         } catch (IllegalArgumentException e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
