@@ -1,0 +1,71 @@
+/* Shared Styles */
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
+
+body {
+    font-family: 'Manrope', sans-serif;
+}
+
+/* Custom Scrollbar */
+.custom-scrollbar::-webkit-scrollbar,
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track,
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb,
+::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1;
+    border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover,
+::-webkit-scrollbar-thumb:hover {
+    background-color: #94a3b8;
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: #475569;
+}
+
+/* Material Symbols */
+.material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    vertical-align: middle;
+}
+
+/* Dash.html specific */
+.sticky-header { position: sticky; top: 0; z-index: 30; }
+.sticky-col { position: sticky; left: 0; z-index: 20; }
+.sticky-corner { position: sticky; top: 0; left: 0; z-index: 40; }
+
+#event-modal-toggle:checked ~ #event-modal-overlay {
+    display: flex;
+}
+
+/* User Management Badges */
+.muted-badge {
+    background-color: rgba(79, 109, 122, 0.08);
+    color: #4f6d7a;
+    border: 1px solid rgba(79, 109, 122, 0.15);
+}
+
+.inactive-badge {
+    background-color: rgba(100, 116, 139, 0.08);
+    color: #64748b;
+    border: 1px solid rgba(100, 116, 139, 0.15);
+}
+
+.row-hover:hover {
+    background-color: rgba(79, 109, 122, 0.03);
+}
+
+/* Form Transitions */
+.input-transition {
+    transition: all 0.2s ease-in-out;
+}

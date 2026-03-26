@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>SlotWise: Event Collision Checker</title>
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link rel="stylesheet" href="style.css">
+
+    <style>
+        body {
+            font-family: 'Manrope', sans-serif;
+        }
+
+        /* ── Project accent ── */
+        :root {
+            --accent: #9FDF20;
+            --accent-dark: #88c11a;
+        }
+
+        .input-transition {
+            transition: all 0.2s ease-in-out;
+        }
+
+        /* Card top-bar accents */
+        .event-a-accent {
+            border-top: 3px solid var(--accent);
+        }
+
+        .event-b-accent {
+            border-top: 3px solid var(--accent-dark);
+        }
+
+        /* Green focus ring on inputs */
+        .green-focus:focus {
+            border-color: var(--accent) !important;
+            box-shadow: 0 0 0 4px rgba(159, 223, 32, .15) !important;
+            outline: none;
+        }
+
+        /* Result banner */
+        #result-banner {
+            display: none;
+        }
+
+        #result-banner.visible {
+            display: flex;
+        }
+
+        /* Pulse animation for collision icon */
+        @keyframes pulse-ring {
+            0% {
+                transform: scale(0.9);
+                opacity: 1;
+            }
+
+            70% {
+                transform: scale(1.15);
+                opacity: 0.4;
+            }
+
+            100% {
+                transform: scale(0.9);
+                opacity: 1;
+            }
+        }
+
+        .pulse {
+            animation: pulse-ring 1.6s ease-out infinite;
+        }
+
+        /* VS badge */
+        .vs-badge {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f1f5f9;
+            border-radius: 50%;
+            font-size: 11px;
+            font-weight: 800;
+            color: #64748b;
+            letter-spacing: .05em;
+            flex-shrink: 0;
+        }
+
+        /* Primary button uses the accent green on hover */
+        .btn-primary:hover {
+            background-color: var(--accent) !important;
+            color: #1a1a1a !important;
+        }
+
+        /* Nav active underline */
+        .nav-active {
+            border-bottom: 2px solid var(--accent);
+        }
+    </style>
+</head>
+
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col">
+
+    <!-- ── Header ── -->
+    <header
+        class="w-full h-16 flex items-center justify-between px-6 lg:px-12 bg-white border-b border-slate-200 z-50 sticky top-0">
+        <div class="flex items-center gap-10">
+            <!-- Logo -->
+            <div class="flex items-center gap-2">
+                <div class="flex items-center justify-center rounded-lg size-8 text-slate-900"
+                    style="background-color:#9FDF20;">
+                    <span class="material-symbols-outlined text-[20px] font-bold">bolt</span>
+                </div>
+                <h1 class="text-slate-900 text-lg font-extrabold tracking-tight">SlotWise</h1>
+            </div>
+            <!-- Nav -->
+            <nav class="hidden md:flex items-center gap-8 h-16">
+                <a class="text-sm font-semibold text-slate-500 hover:text-slate-900 h-full flex items-center border-b-2 border-transparent hover:border-slate-300 transition-colors"
+                    href="dash.html">Dashboard</a>
+                <a class="text-sm font-semibold text-slate-900 h-full flex items-center nav-active"
+                    href="events.html">Events</a>
+                <a class="text-sm font-semibold text-slate-500 hover:text-slate-900 h-full flex items-center border-b-2 border-transparent hover:border-slate-300 transition-colors"
+                    href="create_events.html">Create Event</a>
+                <a class="text-sm font-semibold text-slate-500 hover:text-slate-900 h-full flex items-center border-b-2 border-transparent hover:border-slate-300 transition-colors"
+                    href="user_management.html">Admin</a>
+            </nav>
+        </div>
+        <div class="flex items-center gap-5">
+            <button class="text-slate-500 hover:text-slate-900 flex items-center">
+                <span class="material-symbols-outlined">notifications</span>
+            </button>
+            <div class="size-9 rounded-full flex items-center justify-center font-bold text-sm text-slate-900"
+                style="background-color:#9FDF20;">NP</div>
+        </div>
+    </header>
+
+    <!-- ── Main ── -->
+    <main class="flex-1 flex flex-col items-center justify-center p-4 lg:p-8 relative w-full">
+
+        <!-- Ambient blobs using the green -->
+        <div class="absolute top-0 left-1/4 w-96 h-96 rounded-full blur-3xl opacity-30 pointer-events-none"
+            style="background-color:#9FDF20;"></div>
+        <div class="absolute bottom-0 right-1/4 w-96 h-96 rounded-full blur-3xl opacity-20 pointer-events-none"
+            style="background-color:#9FDF20;"></div>
+
+        <div class="w-full max-w-3xl z-10 flex flex-col gap-6">
+
+            <!-- Page heading -->
+            <div class="text-center">
+                <div
+                    class="inline-flex items-center gap-2 bg-white border border-slate-200 rounded-full px-4 py-1.5 text-xs font-semibold text-slate-500 uppercase tracking-widest mb-3">
+                    <span class="material-symbols-outlined text-[16px]" style="color:#9FDF20;">query_stats</span>
+                    Conflict Detection
+                </div>
+                <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight">Event Collision Checker</h2>
+                <p class="text-slate-500 mt-2 text-sm">Enter two events and instantly find out if their timings overlap.
+                </p>
+            </div>
+
+            <!-- Card -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+
+                <!-- Result banner (hidden until check) -->
+                <div id="result-banner" class="items-start gap-4 p-5 border-b border-slate-100">
+                    <div id="result-icon"
+                        class="flex items-center justify-center rounded-full size-10 flex-shrink-0 mt-0.5"></div>
+                    <div>
+                        <p id="result-title" class="font-bold text-base"></p>
+                        <p id="result-desc" class="text-sm text-slate-500 mt-0.5"></p>
+                    </div>
+                </div>
+
+                <div class="p-6 md:p-8">
+                    <form id="collision-form" class="flex flex-col gap-8" novalidate>
+
+
+                        <div class="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-6 items-start">
+
+                            <!-- ── Event A ── -->
+                            <div class="bg-slate-50 rounded-xl border border-slate-100 overflow-hidden event-a-accent">
+                                <div class="px-5 py-3 border-b border-slate-100 flex items-center gap-2">
+                                    <span
+                                        class="size-5 rounded-full flex items-center justify-center text-[11px] font-black text-slate-900"
+                                        style="background-color:#9FDF20;">A</span>
+                                    <span class="font-bold text-sm text-slate-700">Event A</span>
+                                </div>
+                                <div class="p-5 flex flex-col gap-4">
+                                    <div class="flex flex-col gap-1.5">
+                                        <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider"
+                                            for="a-name">Event Name</label>
+                                        <input id="a-name" type="text" placeholder="e.g., Annual Summit"
+                                            class="input-transition green-focus form-input w-full rounded-lg border-slate-200 bg-white text-slate-800 placeholder:text-slate-300 px-3 py-2.5 text-sm" />
+                                    </div>
+                                    <div class="flex flex-col gap-1.5">
+                                        <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider"
+                                            for="a-date">Date</label>
+                                        <input id="a-date" type="date"
+                                            class="input-transition green-focus form-input w-full rounded-lg border-slate-200 bg-white text-slate-800 px-3 py-2.5 text-sm" />
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <div class="flex flex-col gap-1.5">
+                                            <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider"
+                                                for="a-start">Start</label>
+                                            <input id="a-start" type="time"
+                                                class="input-transition green-focus form-input w-full rounded-lg border-slate-200 bg-white text-slate-800 px-3 py-2.5 text-sm" />
+                                        </div>
+                                        <div class="flex flex-col gap-1.5">
+                                            <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider"
+                                                for="a-end">End</label>
+                                            <input id="a-end" type="time"
+                                                class="input-transition green-focus form-input w-full rounded-lg border-slate-200 bg-white text-slate-800 px-3 py-2.5 text-sm" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- VS divider -->
+                            <div class="hidden md:flex flex-col items-center justify-center h-full pt-12 gap-2">
+                                <div class="w-px flex-1 bg-slate-200"></div>
+                                <div class="vs-badge">VS</div>
+                                <div class="w-px flex-1 bg-slate-200"></div>
+                            </div>
+
+                            <!-- ── Event B ── -->
+                            <div class="bg-slate-50 rounded-xl border border-slate-100 overflow-hidden event-b-accent">
+                                <div class="px-5 py-3 border-b border-slate-100 flex items-center gap-2">
+                                    <span
+                                        class="size-5 rounded-full flex items-center justify-center text-[11px] font-black text-slate-900"
+                                        style="background-color:#88c11a;">B</span>
+                                    <span class="font-bold text-sm text-slate-700">Event B</span>
+                                </div>
+                                <div class="p-5 flex flex-col gap-4">
+                                    <div class="flex flex-col gap-1.5">
+                                        <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider"
+                                            for="b-name">Event Name</label>
+                                        <input id="b-name" type="text" placeholder="e.g., Workshop Day"
+                                            class="input-transition green-focus form-input w-full rounded-lg border-slate-200 bg-white text-slate-800 placeholder:text-slate-300 px-3 py-2.5 text-sm" />
+                                    </div>
+                                    <div class="flex flex-col gap-1.5">
+                                        <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider"
+                                            for="b-date">Date</label>
+                                        <input id="b-date" type="date"
+                                            class="input-transition green-focus form-input w-full rounded-lg border-slate-200 bg-white text-slate-800 px-3 py-2.5 text-sm" />
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <div class="flex flex-col gap-1.5">
+                                            <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider"
+                                                for="b-start">Start</label>
+                                            <input id="b-start" type="time"
+                                                class="input-transition green-focus form-input w-full rounded-lg border-slate-200 bg-white text-slate-800 px-3 py-2.5 text-sm" />
+                                        </div>
+                                        <div class="flex flex-col gap-1.5">
+                                            <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider"
+                                                for="b-end">End</label>
+                                            <input id="b-end" type="time"
+                                                class="input-transition green-focus form-input w-full rounded-lg border-slate-200 bg-white text-slate-800 px-3 py-2.5 text-sm" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div><!-- /grid -->
+
+                        <!-- Validation error -->
+                        <p id="form-error"
+                            class="hidden text-sm text-red-500 bg-red-50 border border-red-100 rounded-lg px-4 py-3 flex items-center gap-2">
+                            <span class="material-symbols-outlined text-[18px]">error</span>
+                            <span id="form-error-msg">Please fill in all fields before checking.</span>
+                        </p>
+
+                        <!-- Actions -->
+                        <div
+                            class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-slate-100">
+                            <a href="events.html"
+                                class="w-full sm:w-auto text-center px-6 py-3 text-sm font-semibold text-slate-500 hover:text-slate-800 transition-colors">
+                                ← Back to Events
+                            </a>
+                            <div class="flex gap-3 w-full sm:w-auto">
+                                <button type="button" id="reset-btn"
+                                    class="px-5 py-3 rounded-lg border border-slate-200 text-slate-500 hover:text-slate-800 hover:border-slate-300 text-sm font-semibold transition-all w-full sm:w-auto">
+                                    Reset
+                                </button>
+                                <button type="submit" id="check-btn"
+                                    class="btn-primary flex items-center justify-center gap-2 px-8 py-3 rounded-lg bg-slate-900 text-white text-sm font-bold shadow transition-all duration-300 w-full sm:w-auto">
+                                    <span class="material-symbols-outlined text-[18px]">radar</span>
+                                    Check Collision
+                                </button>
+                            </div>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        const form = document.getElementById('collision-form');
+        const resetBtn = document.getElementById('reset-btn');
+        const banner = document.getElementById('result-banner');
+        const resultIcon = document.getElementById('result-icon');
+        const resultTitle = document.getElementById('result-title');
+        const resultDesc = document.getElementById('result-desc');
+        const formError = document.getElementById('form-error');
+        const formErrMsg = document.getElementById('form-error-msg');
+
+        function toTimestamp(dateStr, timeStr) {
+            return new Date(`${dateStr}T${timeStr}`).getTime();
+        }
+
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            formError.classList.add('hidden');
+            banner.classList.remove('visible');
+
+            const aName = document.getElementById('a-name').value.trim();
+            const aDate = document.getElementById('a-date').value;
+            const aStart = document.getElementById('a-start').value;
+            const aEnd = document.getElementById('a-end').value;
+
+            const bName = document.getElementById('b-name').value.trim();
+            const bDate = document.getElementById('b-date').value;
+            const bStart = document.getElementById('b-start').value;
+            const bEnd = document.getElementById('b-end').value;
+
+            // Validation
+            if (!aName || !aDate || !aStart || !aEnd || !bName || !bDate || !bStart || !bEnd) {
+                formErrMsg.textContent = 'Please fill in all fields for both events before checking.';
+                formError.classList.remove('hidden');
+                return;
+            }
+            if (aStart >= aEnd) {
+                formErrMsg.textContent = 'Event A: End time must be after Start time.';
+                formError.classList.remove('hidden');
+                return;
+            }
+            if (bStart >= bEnd) {
+                formErrMsg.textContent = 'Event B: End time must be after Start time.';
+                formError.classList.remove('hidden');
+                return;
+            }
+
+            // Collision logi  (aStart < bEnd) && (bStart < aEnd)
+            const tsAStart = toTimestamp(aDate, aStart);
+            const tsAEnd = toTimestamp(aDate, aEnd);
+            const tsBStart = toTimestamp(bDate, bStart);
+            const tsBEnd = toTimestamp(bDate, bEnd);
+
+            const collides = (tsAStart < tsBEnd) && (tsBStart < tsAEnd);
+
+            banner.classList.add('visible');
+
+            if (collides) {
+                banner.className = 'visible flex items-start gap-4 p-5 border-b border-red-100 bg-red-50';
+                resultIcon.className = 'pulse flex items-center justify-center rounded-full size-10 flex-shrink-0 mt-0.5 bg-red-100 text-red-600';
+                resultIcon.innerHTML = '<span class="material-symbols-outlined text-[22px]">warning</span>';
+                resultTitle.className = 'font-bold text-base text-red-700';
+                resultTitle.textContent = '⚠ Collision Detected!';
+                resultDesc.textContent = `Sorry — "${bName || 'Event B'}" cannot be added due to a timing collision with "${aName || 'Event A'}". Please choose a different time slot.`;
+            } else {
+                // Success uses project green   
+                banner.style.background = 'rgba(159,223,32,.08)';
+                banner.style.borderBottom = '1px solid rgba(159,223,32,.25)';
+                banner.className = 'visible flex items-start gap-4 p-5';
+                resultIcon.className = 'flex items-center justify-center rounded-full size-10 flex-shrink-0 mt-0.5';
+                resultIcon.style.background = 'rgba(159,223,32,.2)';
+                resultIcon.style.color = '#5a8a00';
+                resultIcon.innerHTML = '<span class="material-symbols-outlined text-[22px]">check_circle</span>';
+                resultTitle.className = 'font-bold text-base';
+                resultTitle.style.color = '#4a7a00';
+                resultTitle.textContent = '✓ Events Successfully Entered!';
+                resultDesc.style.color = '';
+                resultDesc.textContent = `"${aName || 'Event A'}" and "${bName || 'Event B'}" have no timing conflict and can both be scheduled.`;
+            }
+
+            banner.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        });
+
+        resetBtn.addEventListener('click', function () {
+            form.reset();
+            formError.classList.add('hidden');
+            banner.classList.remove('visible');
+            // Resetting all the styles to default, forr default view
+            banner.removeAttribute('style');
+            resultIcon.removeAttribute('style');
+            resultTitle.removeAttribute('style');
+            resultDesc.removeAttribute('style');
+        });
+    </script>
+
+</body>
+
+</html>

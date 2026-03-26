@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>SlotWise: Add New User</title>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="bg-background-light dark:bg-background-dark text-[#161b0e] font-display min-h-screen">
+
+    <div class="relative flex h-auto min-h-screen w-full flex-col group/design-root overflow-x-hidden">
+        <div class="layout-container flex h-full grow flex-col">
+            <nav
+                class="w-full h-16 flex items-center justify-between px-6 lg:px-12 bg-white dark:bg-[#1a1d21] border-b border-gray-200 dark:border-gray-800 z-50 sticky top-0">
+                <div class="flex items-center gap-10">
+                    <div class="flex items-center gap-2">
+                        <div class="bg-primary flex items-center justify-center rounded-lg size-8 text-slate-900">
+                            <span class="material-symbols-outlined text-[20px] font-bold">bolt</span>
+                        </div>
+                        <h1 class="text-slate-900 dark:text-white text-lg font-extrabold tracking-tight">SlotWise</h1>
+                    </div>
+                    <div class="hidden md:flex items-center gap-8 h-16">
+                        <a class="text-sm font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white h-full flex items-center border-b-2 border-transparent hover:border-slate-300 dark:hover:border-slate-700 transition-all"
+                            href="dash.html">Dashboard</a>
+                        <a class="text-sm font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white h-full flex items-center border-b-2 border-transparent hover:border-slate-300 dark:hover:border-slate-700 transition-all"
+                            href="events.html">Events</a>
+                        <a class="text-sm font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white h-full flex items-center border-b-2 border-transparent hover:border-slate-300 dark:hover:border-slate-700 transition-all"
+                            href="create_events.html">Create Event</a>
+                        <a class="text-sm font-semibold text-slate-900 dark:text-white h-full flex items-center border-b-2 border-primary"
+                            href="user_management.html">Admin</a>
+                    </div>
+                </div>
+                <div class="flex items-center gap-5">
+                    <button
+                        class="text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white flex items-center">
+                        <span class="material-symbols-outlined">notifications</span>
+                    </button>
+                    <div class="flex items-center gap-3 pl-2">
+                        <div class="hidden sm:flex flex-col text-right">
+                            <span class="text-xs font-bold text-slate-900 dark:text-white">Naitik Patel</span>
+                            <span
+                                class="text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-medium">Coordinator</span>
+                        </div>
+                        <a href="login.html">
+                            <div class="size-9 rounded-full bg-cover bg-center border border-slate-200 dark:border-slate-700"
+                                style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDd28PwlWjeul16cjS0ViqRfVlP1ovyQqXiZni5EQ2wQM1I5PM5nj-wf1QXQp-3YPZmW_GbWDBwSpqcUYTOC3JR3-m5fvUKT7_jDcEN6R9Tg-oxV-EnF_eA-UKBEimZU08UDP9PzZmp7Yh8Y0Tsf8Fw9TPKpUPZgw59QZ3bt05Subl8tT-ZaRh9gm7pVuZlExDYncB9N7nw4fyQo6_UbjsL9V-keAnK36w8_0HMlIxvJn_rc6SR3U8OG6QnjwuQBCtOgdwazP9XW_n7');">
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </nav>
+            <main class="flex flex-1 flex-col px-10 py-8 max-w-[1400px] mx-auto w-full">
+                <div class="flex items-center gap-4 mb-8">
+                    <a href="user_management.html">
+                        <button
+                            class="flex items-center justify-center gap-2 p-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white rounded-lg hover:bg-slate-100 dark:hover:bg-white/10 transition-colors">
+                            <span class="material-symbols-outlined">arrow_back</span>
+                        </button>
+                    </a>
+                    <div class="flex flex-col gap-1">
+                        <h1
+                            class="text-[#161b0e] dark:text-white text-4xl font-black leading-tight tracking-[-0.033em]">
+                            Add New User</h1>
+                        <p class="text-sm text-slate-500 dark:text-slate-400">Enter faculty details to create a new user
+                            account.</p>
+                    </div>
+                </div>
+
+                <div
+                    class="bg-white dark:bg-background-dark/30 rounded-xl border border-slate-200 dark:border-white/10 overflow-hidden shadow-sm p-8">
+                    <form id="addUserForm" class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Faculty Name -->
+                            <div class="flex flex-col gap-2">
+                                <label
+                                    class="text-sm font-bold text-[#161b0e] dark:text-white">Faculty Name</label>
+                                <input type="text" id="facultyName" placeholder="Enter full name"
+                                    class="form-input w-full border border-slate-200 dark:border-white/10 bg-white dark:bg-background-dark/50 rounded-lg px-4 py-3 text-[#161b0e] dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                                    required />
+                            </div>
+
+                            <!-- Email Address -->
+                            <div class="flex flex-col gap-2">
+                                <label
+                                    class="text-sm font-bold text-[#161b0e] dark:text-white">Email Address</label>
+                                <input type="email" id="emailAddress" placeholder="Enter email address"
+                                    class="form-input w-full border border-slate-200 dark:border-white/10 bg-white dark:bg-background-dark/50 rounded-lg px-4 py-3 text-[#161b0e] dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                                    required />
+                            </div>
+
+                            <!-- Institute -->
+                            <div class="flex flex-col gap-2">
+                                <label
+                                    class="text-sm font-bold text-[#161b0e] dark:text-white">Institute</label>
+                                <input type="text" id="institute" placeholder="Enter institute name"
+                                    class="form-input w-full border border-slate-200 dark:border-white/10 bg-white dark:bg-background-dark/50 rounded-lg px-4 py-3 text-[#161b0e] dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                                    required />
+                            </div>
+
+                            <!-- Department -->
+                            <div class="flex flex-col gap-2">
+                                <label
+                                    class="text-sm font-bold text-[#161b0e] dark:text-white">Department</label>
+                                <input type="text" id="department" placeholder="Enter department name"
+                                    class="form-input w-full border border-slate-200 dark:border-white/10 bg-white dark:bg-background-dark/50 rounded-lg px-4 py-3 text-[#161b0e] dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                                    required />
+                            </div>
+
+                            <!-- Position -->
+                            <div class="flex flex-col gap-2 md:col-span-2">
+                                <label
+                                    class="text-sm font-bold text-[#161b0e] dark:text-white">Position</label>
+                                <select id="position"
+                                    class="form-select w-full border border-slate-200 dark:border-white/10 bg-white dark:bg-background-dark/50 rounded-lg px-4 py-3 text-[#161b0e] dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                                    required>
+                                    <option value="">Select a position</option>
+                                    <option value="Admin">Admin</option>
+                                    <option value="Faculty">Faculty</option>
+                                    <option value="Staff">Staff</option>
+                                    <option value="Coordinator">Coordinator</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="flex gap-3 pt-4 border-t border-slate-200 dark:border-white/10">
+                            <button type="submit"
+                                class="flex flex-1 justify-center items-center gap-2 rounded-lg h-12 px-6 bg-primary text-background-dark text-sm font-bold leading-normal tracking-[0.015em] hover:brightness-105 transition-all shadow-md shadow-primary/10">
+                                <span class="material-symbols-outlined">person_add</span>
+                                <span>Add User</span>
+                            </button>
+                            <a href="user_management.html">
+                                <button type="button"
+                                    class="flex items-center justify-center gap-2 rounded-lg h-12 px-6 bg-slate-100 dark:bg-white/10 text-[#161b0e] dark:text-white text-sm font-bold hover:bg-slate-200 dark:hover:bg-white/20 transition-all">
+                                    <span>Cancel</span>
+                                </button>
+                            </a>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Info Section -->
+                <div
+                    class="mt-8 p-6 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 flex items-center justify-start gap-4">
+                    <div
+                        class="size-10 flex items-center justify-center bg-muted-blue-grey/10 rounded-full text-muted-blue-grey flex-shrink-0">
+                        <span class="material-symbols-outlined">info</span>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-[#161b0e] dark:text-white">User Account Creation</h4>
+                        <p class="text-sm text-slate-500 dark:text-slate-400">The new user will receive an email with
+                            login credentials and instructions to set up their password.</p>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    <script src="script.js"></script>
+    <script>
+        document.getElementById('addUserForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            // Get form values
+            const facultyName = document.getElementById('facultyName').value;
+            const emailAddress = document.getElementById('emailAddress').value;
+            const institute = document.getElementById('institute').value;
+            const department = document.getElementById('department').value;
+            const position = document.getElementById('position').value;
+
+            // Validate all fields are filled
+            if (!facultyName || !emailAddress || !institute || !department || !position) {
+                alert('Please fill in all fields');
+                return;
+            }
+
+            // Create user object
+            const newUser = {
+                name: facultyName,
+                email: emailAddress,
+                institute: institute,
+                department: department,
+                position: position,
+                status: 'Active',
+                dateAdded: new Date().toLocaleDateString()
+            };
+
+            // Get existing users from localStorage or create empty array
+            let users = JSON.parse(localStorage.getItem('users')) || [];
+
+            // Add new user
+            users.push(newUser);
+
+            // Save to localStorage
+            localStorage.setItem('users', JSON.stringify(users));
+
+            // Show success message
+            alert('User added successfully!');
+
+            // Redirect back to user management page
+            window.location.href = 'user_management.html';
+        });
+    </script>
+</body>
+
+</html>
