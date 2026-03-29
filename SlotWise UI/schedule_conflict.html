@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>SlotWise: Conflict Resolution</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&amp;display=swap" rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body
+    class="bg-background-light dark:bg-background-dark text-text-main dark:text-gray-200 font-display transition-colors duration-200 min-h-screen flex flex-col overflow-x-hidden">
+    <nav
+        class="w-full h-16 flex items-center justify-between px-6 lg:px-12 bg-white dark:bg-[#1a1d21] border-b border-gray-200 dark:border-gray-800 z-50 sticky top-0">
+        <div class="flex items-center gap-10">
+            <div class="flex items-center gap-2">
+                <div class="bg-primary flex items-center justify-center rounded-lg size-8 text-slate-900">
+                    <span class="material-symbols-outlined text-[20px] font-bold">bolt</span>
+                </div>
+                <h1 class="text-slate-900 dark:text-white text-lg font-extrabold tracking-tight">SlotWise</h1>
+            </div>
+            <div class="hidden md:flex items-center gap-8 h-16">
+                <a class="text-sm font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white h-full flex items-center border-b-2 border-transparent hover:border-slate-300 dark:hover:border-slate-700 transition-all"
+                    href="dash.html">Dashboard</a>
+                <a class="text-sm font-semibold text-slate-900 dark:text-white h-full flex items-center border-b-2 border-primary"
+                    href="events.html">Events</a>
+                <a class="text-sm font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white h-full flex items-center border-b-2 border-transparent hover:border-slate-300 dark:hover:border-slate-700 transition-all"
+                    href="create_events.html">Create Event</a>
+                <a class="text-sm font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white h-full flex items-center border-b-2 border-transparent hover:border-slate-300 dark:hover:border-slate-700 transition-all"
+                    href="user_management.html">Admin</a>
+            </div>
+        </div>
+        <div class="flex items-center gap-5">
+            <button
+                class="text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white flex items-center">
+                <span class="material-symbols-outlined">notifications</span>
+            </button>
+            <div class="flex items-center gap-3 pl-2">
+                <div class="hidden sm:flex flex-col text-right">
+                    <span class="text-xs font-bold text-slate-900 dark:text-white">Naitik Patel</span>
+                    <span
+                        class="text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-medium">Coordinator</span>
+                </div>
+                <a href="login.html">
+                    <div class="size-9 rounded-full bg-cover bg-center border border-slate-200 dark:border-slate-700"
+                        style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDd28PwlWjeul16cjS0ViqRfVlP1ovyQqXiZni5EQ2wQM1I5PM5nj-wf1QXQp-3YPZmW_GbWDBwSpqcUYTOC3JR3-m5fvUKT7_jDcEN6R9Tg-oxV-EnF_eA-UKBEimZU08UDP9PzZmp7Yh8Y0Tsf8Fw9TPKpUPZgw59QZ3bt05Subl8tT-ZaRh9gm7pVuZlExDYncB9N7nw4fyQo6_UbjsL9V-keAnK36w8_0HMlIxvJn_rc6SR3U8OG6QnjwuQBCtOgdwazP9XW_n7');">
+                    </div>
+                </a>
+            </div>
+        </div>
+    </nav>
+    <main class="flex-1 flex justify-center py-10 px-4 sm:px-6 lg:px-8">
+        <div class="w-full max-w-5xl flex flex-col gap-8">
+            <div class="flex flex-col gap-2 border-b border-gray-200 dark:border-gray-800 pb-8">
+                <a href="create_events.html"
+                    class="flex items-center gap-2 text-accent-lime-dark dark:text-accent-lime mb-1 hover:underline">
+                    <span class="material-symbols-outlined text-sm">arrow_back</span>
+                    <span class="text-xs font-bold uppercase tracking-widest">Back to Scheduling</span>
+                </a>
+                <h1 class="text-4xl font-extrabold tracking-tight text-text-main dark:text-white">Conflict Resolution
+                </h1>
+                <p class="text-text-secondary dark:text-gray-400 text-lg">A collision was detected for your requested
+                    time slot. Select a recommended alternative to proceed.</p>
+            </div>
+            <div
+                class="bg-surface-light dark:bg-surface-dark border-l-4 border-l-orange-400 dark:border-l-orange-500 rounded-r-2xl shadow-sm p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative overflow-hidden ring-1 ring-gray-200 dark:ring-gray-800">
+                <div
+                    class="absolute right-0 top-0 h-full w-1/4 bg-gradient-to-l from-orange-50 dark:from-orange-950/20 to-transparent pointer-events-none">
+                </div>
+                <div class="flex items-start gap-6 relative z-10 w-full">
+                    <div
+                        class="size-14 rounded-2xl bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center shrink-0 text-orange-600 dark:text-orange-400">
+                        <span class="material-symbols-outlined text-3xl font-bold">warning</span>
+                    </div>
+                    <div class="flex flex-col gap-2 w-full">
+                        <div class="flex items-center gap-3">
+                            <h3 class="text-2xl font-bold text-text-main dark:text-white leading-tight">Collision:
+                                Conference Room A</h3>
+                            <span
+                                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300 text-xs font-bold uppercase tracking-wider">
+                                <span class="size-2 rounded-full bg-red-600 animate-pulse"></span> Occupied
+                            </span>
+                        </div>
+                        <p class="text-text-secondary dark:text-gray-300 text-base leading-relaxed">
+                            The requested slot <strong class="text-text-main dark:text-white font-bold">Oct 24, 2:00 PM
+                                - 4:00 PM</strong> is currently booked by '<span class="italic font-medium">Quarterly
+                                Budget Review</span>' (Finance Dept).
+                        </p>
+                        <div class="flex items-center gap-4 mt-2">
+                            <span
+                                class="text-sm font-medium text-text-secondary dark:text-gray-500 flex items-center gap-1.5">
+                                <span class="material-symbols-outlined text-lg">group</span>
+                                Capacity: 12 people
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="flex flex-wrap items-center justify-between gap-4 mt-4">
+                <div class="flex items-center gap-3">
+                    <h2 class="text-2xl font-bold text-text-main dark:text-white">Suggested Alternatives</h2>
+                    <span
+                        class="bg-accent-lime/20 text-accent-lime-dark dark:text-accent-lime text-xs font-black px-3 py-1 rounded-full border border-accent-lime/30">3
+                        OPTIONS FOUND</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span class="text-sm text-text-secondary dark:text-gray-500 font-medium">Sort by:</span>
+                    <button
+                        class="flex items-center gap-1 px-3 py-1.5 bg-gray-100 dark:bg-gray-800 rounded-lg text-sm font-bold text-text-main dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                        Best Match
+                        <span class="material-symbols-outlined text-[18px]">expand_more</span>
+                    </button>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div
+                    class="group bg-surface-light dark:bg-surface-dark rounded-2xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm hover:shadow-xl hover:shadow-accent-lime/10 transition-all duration-300 hover:bg-accent-lime/[0.04] dark:hover:bg-accent-lime/[0.02] hover:border-accent-lime/40 flex flex-col justify-between h-full relative cursor-pointer ring-1 ring-transparent hover:ring-accent-lime/20">
+                    <div class="absolute top-6 right-6">
+                        <span
+                            class="inline-flex items-center px-2.5 py-1 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 group-hover:bg-accent-lime group-hover:text-black text-xs font-bold border border-transparent transition-colors">
+                            Same Room
+                        </span>
+                    </div>
+                    <div class="flex flex-col gap-6">
+                        <div class="flex items-center gap-4">
+                            <div
+                                class="size-12 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-500 group-hover:bg-accent-lime group-hover:text-black transition-all duration-300">
+                                <span class="material-symbols-outlined text-2xl">schedule</span>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-lg text-text-main dark:text-white">Time Shift</h4>
+                                <p class="text-xs font-medium text-text-secondary dark:text-gray-500">Later same day</p>
+                            </div>
+                        </div>
+                        <div class="space-y-4">
+                            <div>
+                                <div
+                                    class="text-[10px] uppercase tracking-widest text-text-secondary dark:text-gray-500 mb-1.5 font-black">
+                                    New Time Window</div>
+                                <div class="text-xl font-extrabold text-text-main dark:text-white">4:30 PM - 6:30 PM
+                                </div>
+                                <div class="text-sm font-medium text-text-secondary dark:text-gray-400">Thursday, Oct 24
+                                </div>
+                            </div>
+                            <div
+                                class="flex items-center gap-2 text-sm font-semibold text-text-main dark:text-gray-300">
+                                <span
+                                    class="material-symbols-outlined text-[20px] text-accent-lime-dark dark:text-accent-lime">meeting_room</span>
+                                <span>Conference Room A</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-8 pt-6 border-t border-gray-100 dark:border-gray-800/50">
+                        <button
+                            class="w-full py-3 rounded-xl bg-gray-900 dark:bg-gray-700 text-white text-sm font-bold shadow-sm hover:bg-accent-lime hover:text-black transition-all duration-200">
+                            Select Recommendation
+                        </button>
+                    </div>
+                </div>
+                <div
+                    class="group bg-surface-light dark:bg-surface-dark rounded-2xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm hover:shadow-xl hover:shadow-accent-lime/10 transition-all duration-300 hover:bg-accent-lime/[0.04] dark:hover:bg-accent-lime/[0.02] hover:border-accent-lime/40 flex flex-col justify-between h-full relative cursor-pointer ring-1 ring-transparent hover:ring-accent-lime/20">
+                    <div class="absolute top-6 right-6">
+                        <span
+                            class="inline-flex items-center px-2.5 py-1 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 group-hover:bg-accent-lime group-hover:text-black text-xs font-bold border border-transparent transition-colors">
+                            Exact Time
+                        </span>
+                    </div>
+                    <div class="flex flex-col gap-6">
+                        <div class="flex items-center gap-4">
+                            <div
+                                class="size-12 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-500 group-hover:bg-accent-lime group-hover:text-black transition-all duration-300">
+                                <span class="material-symbols-outlined text-2xl">location_on</span>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-lg text-text-main dark:text-white">Venue Change</h4>
+                                <p class="text-xs font-medium text-text-secondary dark:text-gray-500">Nearby alternative
+                                </p>
+                            </div>
+                        </div>
+                        <div class="space-y-4">
+                            <div>
+                                <div
+                                    class="text-[10px] uppercase tracking-widest text-text-secondary dark:text-gray-500 mb-1.5 font-black">
+                                    New Venue</div>
+                                <div class="text-xl font-extrabold text-text-main dark:text-white">Conference Room B
+                                </div>
+                                <div class="text-sm font-medium text-text-secondary dark:text-gray-400">2nd Floor, East
+                                    Wing</div>
+                            </div>
+                            <div
+                                class="flex items-center gap-2 text-sm font-semibold text-text-main dark:text-gray-300">
+                                <span
+                                    class="material-symbols-outlined text-[20px] text-accent-lime-dark dark:text-accent-lime">schedule</span>
+                                <span>2:00 PM - 4:00 PM (Oct 24)</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-8 pt-6 border-t border-gray-100 dark:border-gray-800/50">
+                        <button
+                            class="w-full py-3 rounded-xl bg-gray-900 dark:bg-gray-700 text-white text-sm font-bold shadow-sm hover:bg-accent-lime hover:text-black transition-all duration-200">
+                            Select Recommendation
+                        </button>
+                    </div>
+                </div>
+                <div
+                    class="group bg-surface-light dark:bg-surface-dark rounded-2xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm hover:shadow-xl hover:shadow-accent-lime/10 transition-all duration-300 hover:bg-accent-lime/[0.04] dark:hover:bg-accent-lime/[0.02] hover:border-accent-lime/40 flex flex-col justify-between h-full relative cursor-pointer ring-1 ring-transparent hover:ring-accent-lime/20">
+                    <div class="absolute top-6 right-6">
+                        <span
+                            class="inline-flex items-center px-2.5 py-1 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 group-hover:bg-accent-lime group-hover:text-black text-xs font-bold border border-transparent transition-colors">
+                            Next Day
+                        </span>
+                    </div>
+                    <div class="flex flex-col gap-6">
+                        <div class="flex items-center gap-4">
+                            <div
+                                class="size-12 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-500 group-hover:bg-accent-lime group-hover:text-black transition-all duration-300">
+                                <span class="material-symbols-outlined text-2xl">event_upcoming</span>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-lg text-text-main dark:text-white">Date Change</h4>
+                                <p class="text-xs font-medium text-text-secondary dark:text-gray-500">Same time, Friday
+                                </p>
+                            </div>
+                        </div>
+                        <div class="space-y-4">
+                            <div>
+                                <div
+                                    class="text-[10px] uppercase tracking-widest text-text-secondary dark:text-gray-500 mb-1.5 font-black">
+                                    New Date</div>
+                                <div class="text-xl font-extrabold text-text-main dark:text-white">Friday, Oct 25</div>
+                                <div class="text-sm font-medium text-text-secondary dark:text-gray-400">2:00 PM - 4:00
+                                    PM</div>
+                            </div>
+                            <div
+                                class="flex items-center gap-2 text-sm font-semibold text-text-main dark:text-gray-300">
+                                <span
+                                    class="material-symbols-outlined text-[20px] text-accent-lime-dark dark:text-accent-lime">meeting_room</span>
+                                <span>Conference Room A</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-8 pt-6 border-t border-gray-100 dark:border-gray-800/50">
+                        <button
+                            class="w-full py-3 rounded-xl bg-gray-900 dark:bg-gray-700 text-white text-sm font-bold shadow-sm hover:bg-accent-lime hover:text-black transition-all duration-200">
+                            Select Recommendation
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="flex flex-col sm:flex-row justify-center items-center gap-4 mt-12 pb-12">
+                <a href="dash.html"
+                    class="w-full sm:w-auto px-10 py-4 rounded-xl border border-gray-300 dark:border-gray-700 text-text-main dark:text-white font-bold text-sm hover:bg-red-50 dark:hover:bg-red-900/10 hover:text-red-600 dark:hover:text-red-400 hover:border-red-200 dark:hover:border-red-800 transition-all duration-200 flex items-center justify-center gap-2">
+                    <span class="material-symbols-outlined text-xl">close</span>
+                    Cancel Scheduling
+                </a>
+                <button
+                    class="w-full sm:w-auto px-10 py-4 rounded-xl bg-gray-100 dark:bg-gray-800 text-text-secondary dark:text-gray-400 font-bold text-sm hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200 flex items-center justify-center gap-2">
+                    <span class="material-symbols-outlined text-xl">help</span>
+                    Request Override
+                </button>
+            </div>
+        </div>
+    </main>
+    <script src="script.js"></script>
+</body>
+
+</html>
