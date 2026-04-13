@@ -12,4 +12,5 @@ public interface VenueRepository extends JpaRepository<Venue, Long> {
     Optional<Venue> findByName(String name);
     List<Venue> findByInstituteId(Long instituteId);
     boolean existsByName(String name);
+    List<Venue> findAllByIdNot(Long id);
 }

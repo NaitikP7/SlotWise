@@ -1,23 +1,24 @@
 import { useState, useEffect } from 'react';
-import { eventAPI, venueAPI, userAPI } from '../services/api';
+import { eventAPI, venueAPI } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/Toast';
 
-export default function CreateEventPage({ onNavigate }) {
+export default function CreateEventPage({ onNavigate, onConflict }) {
+  const { user } = useAuth();
   const toast = useToast();
   const [venues, setVenues] = useState([]);
-  const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
 
   const [form, setForm] = useState({
     title: '', description: '', startTime: '', endTime: '',
-    location: '', active: true, organizerId: '', venueId: '',
+    location: '', active: true, venueId: '',
   });
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
-    Promise.all([venueAPI.getAll(), userAPI.getAll()])
-      .then(([vRes, uRes]) => { setVenues(vRes.data); setUsers(uRes.data); })
-      .catch(() => {});
+    venueAPI.getAll()
+      .then((res) => setVenues(res.data))
+      .catch(() => { });
   }, []);
 
   const validate = () => {
@@ -28,7 +29,6 @@ export default function CreateEventPage({ onNavigate }) {
     if (form.startTime && form.endTime && new Date(form.startTime) >= new Date(form.endTime))
       e.endTime = 'Must be after start';
     if (!form.venueId) e.venueId = 'Venue is required';
-    if (!form.organizerId) e.organizerId = 'Organizer is required';
     setErrors(e);
     return !Object.keys(e).length;
   };
@@ -37,24 +37,42 @@ export default function CreateEventPage({ onNavigate }) {
     e.preventDefault();
     if (!validate()) return;
     setLoading(true);
+
     const toISO = (dt) => {
       if (!dt) return null;
-      // datetime-local gives us "YYYY-MM-DDTHH:mm" — append :00 for seconds
       return dt.length === 16 ? dt + ':00' : dt;
     };
+
+    const payload = {
+      title: form.title,
+      description: form.description,
+      startTime: toISO(form.startTime),
+      endTime: toISO(form.endTime),
+      location: form.location,
+      active: form.active,
+      organizerId: user?.id ? Number(user.id) : null,
+      venueId: Number(form.venueId),
+    };
+
     try {
-      await eventAPI.create({
-        title: form.title, description: form.description,
-        startTime: toISO(form.startTime), endTime: toISO(form.endTime),
-        location: form.location, active: form.active,
-        organizerId: Number(form.organizerId), venueId: Number(form.venueId),
-      });
+      await eventAPI.create(payload);
       toast.success('Event Created', `"${form.title}" has been scheduled`);
       if (onNavigate) onNavigate('events');
     } catch (err) {
-      if (err.response?.status === 409) toast.error('Collision', 'This event conflicts with an existing booking');
-      else toast.error('Error', err.response?.data || 'Failed to create event');
-    } finally { setLoading(false); }
+      if (err.response?.status === 409 && err.response?.data?.collision) {
+        // Conflict detected — redirect to conflict resolution page
+        if (onConflict) {
+          onConflict({
+            conflictData: err.response.data,
+            originalForm: payload,
+          });
+        }
+      } else {
+        toast.error('Error', err.response?.data?.message || err.response?.data || 'Failed to create event');
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   const set = (k, v) => setForm({ ...form, [k]: v });
@@ -73,6 +91,22 @@ export default function CreateEventPage({ onNavigate }) {
           <span className="material-symbols-outlined" style={{ color: 'var(--color-primary)' }}>event</span>
           Event Information
         </h3>
+
+        {/* Show organizer info as read-only badge
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 10, padding: '10px 16px',
+          background: 'rgba(99, 102, 241, 0.08)', borderRadius: 10, marginBottom: 20,
+          border: '1px solid rgba(99, 102, 241, 0.15)'
+        }}>
+          <span className="material-symbols-outlined" style={{ color: 'var(--color-primary)', fontSize: 20 }}>person</span>
+          <span style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>Organizer:</span>
+          <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)' }}>{user?.name || 'You'}</span>
+          <span style={{
+            fontSize: 11, background: 'var(--color-primary)', color: '#fff',
+            padding: '2px 8px', borderRadius: 6, marginLeft: 'auto'
+          }}>Auto-assigned</span>
+        </div> */}
+
         <form onSubmit={handleSubmit}>
           <div className="form-group" style={{ marginBottom: 20 }}>
             <label className="form-label" htmlFor="evt-name">
@@ -96,7 +130,7 @@ export default function CreateEventPage({ onNavigate }) {
           </div>
 
           <div className="form-row" style={{ marginBottom: 20 }}>
-            <div className="form-group">
+            <div className="form-group" style={{ flex: 1 }}>
               <label className="form-label" htmlFor="evt-venue">
                 <span className="material-symbols-outlined">location_on</span>
                 Venue
@@ -107,18 +141,6 @@ export default function CreateEventPage({ onNavigate }) {
                 {venues.map(v => <option key={v.id} value={v.id}>{v.name} ({v.capacity} seats)</option>)}
               </select>
               {errors.venueId && <div className="form-error">{errors.venueId}</div>}
-            </div>
-            <div className="form-group">
-              <label className="form-label" htmlFor="evt-org">
-                <span className="material-symbols-outlined">person</span>
-                Organizer
-              </label>
-              <select id="evt-org" className={`form-select ${errors.organizerId ? 'error' : ''}`}
-                value={form.organizerId} onChange={(e) => set('organizerId', e.target.value)}>
-                <option value="">Select organizer...</option>
-                {users.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
-              </select>
-              {errors.organizerId && <div className="form-error">{errors.organizerId}</div>}
             </div>
           </div>
 

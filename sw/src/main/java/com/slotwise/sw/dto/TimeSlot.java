@@ -1,45 +1,45 @@
 package com.slotwise.sw.dto;
 
-import java.time.LocalTime;
+import java.time.LocalDateTime;
 
 /**
  * TimeSlot DTO represents an available time slot for scheduling events
- * Contains start time and end time
+ * Uses LocalDateTime so the frontend receives full date+time values
  */
 public class TimeSlot {
-    private LocalTime startTime;
-    private LocalTime endTime;
-    private String slotType; // "before_first", "between_events", "after_last"
+    private LocalDateTime startTime;
+    private LocalDateTime endTime;
+    private String slotType; // "available", "between_events", etc.
 
     // Constructors
     public TimeSlot() {
     }
 
-    public TimeSlot(LocalTime startTime, LocalTime endTime) {
+    public TimeSlot(LocalDateTime startTime, LocalDateTime endTime) {
         this.startTime = startTime;
         this.endTime = endTime;
     }
 
-    public TimeSlot(LocalTime startTime, LocalTime endTime, String slotType) {
+    public TimeSlot(LocalDateTime startTime, LocalDateTime endTime, String slotType) {
         this.startTime = startTime;
         this.endTime = endTime;
         this.slotType = slotType;
     }
 
     // Getters and Setters
-    public LocalTime getStartTime() {
+    public LocalDateTime getStartTime() {
         return startTime;
     }
 
-    public void setStartTime(LocalTime startTime) {
+    public void setStartTime(LocalDateTime startTime) {
         this.startTime = startTime;
     }
 
-    public LocalTime getEndTime() {
+    public LocalDateTime getEndTime() {
         return endTime;
     }
 
-    public void setEndTime(LocalTime endTime) {
+    public void setEndTime(LocalDateTime endTime) {
         this.endTime = endTime;
     }
 
@@ -70,4 +70,3 @@ public class TimeSlot {
                 '}';
     }
 }
-

@@ -2,7 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/sw.iml" filepath="$PROJECT_DIR$/.idea/sw.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/SlotWise.iml" filepath="$PROJECT_DIR$/.idea/SlotWise.iml" />
+      <module fileurl="file://$PROJECT_DIR$/sw/sw.iml" filepath="$PROJECT_DIR$/sw/sw.iml" />
     </modules>
   </component>
 </project>

@@ -5,6 +5,7 @@ import Navbar from '../components/Navbar';
 import VenueGridPage from './VenueGridPage';
 import EventsListPage from './EventsListPage';
 import CreateEventPage from './CreateEventPage';
+import ConflictResolutionPage from './ConflictResolutionPage';
 import AdminPage from './AdminPage';
 
 export default function MainApp() {
@@ -12,28 +13,39 @@ export default function MainApp() {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  // Derive route from URL path
+  // State for conflict resolution data (passed from CreateEventPage)
+  const [conflictState, setConflictState] = useState(null);
+
   const pathToRoute = (path) => {
     const p = path.replace(/^\//, '');
     if (p === 'admin') return 'admin';
     if (p === 'events') return 'events';
     if (p === 'create-event') return 'create-event';
+    if (p === 'conflict-resolution') return 'conflict-resolution';
     return 'dashboard';
   };
 
   const [route, setRoute] = useState(pathToRoute(location.pathname));
 
-  // Sync route state when URL changes
   useEffect(() => {
     setRoute(pathToRoute(location.pathname));
   }, [location.pathname]);
 
   const handleNavigate = (id) => {
+    // Clear conflict state when navigating away from conflict resolution
+    if (id !== 'conflict-resolution') {
+      setConflictState(null);
+    }
     setRoute(id);
     navigate(`/${id === 'dashboard' ? 'dashboard' : id}`);
   };
 
-  // Protect admin route: non-admin users can't access /admin
+  const handleConflict = ({ conflictData, originalForm }) => {
+    setConflictState({ conflictData, originalForm });
+    setRoute('conflict-resolution');
+    navigate('/conflict-resolution');
+  };
+
   const effectiveRoute = (route === 'admin' && user?.role !== 'ADMIN') ? 'dashboard' : route;
 
   const renderPage = () => {
@@ -43,7 +55,15 @@ export default function MainApp() {
       case 'events':
         return <EventsListPage />;
       case 'create-event':
-        return <CreateEventPage onNavigate={handleNavigate} />;
+        return <CreateEventPage onNavigate={handleNavigate} onConflict={handleConflict} />;
+      case 'conflict-resolution':
+        return (
+          <ConflictResolutionPage
+            conflictData={conflictState?.conflictData}
+            originalForm={conflictState?.originalForm}
+            onNavigate={handleNavigate}
+          />
+        );
       case 'admin':
         return <AdminPage />;
       default:

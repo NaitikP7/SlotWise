@@ -84,5 +84,38 @@ public interface EventRepository extends JpaRepository<Event, Long> {
     boolean existsEventConflict(@Param("venueId") Long venueId, 
                                @Param("startTime") LocalDateTime startTime,
                                @Param("endTime") LocalDateTime endTime);
+
+    /**
+     * Find the actual conflicting events for a venue and time range
+     */
+    @Query("SELECT e FROM Event e WHERE e.venue.id = :venueId " +
+           "AND e.startTime < :endTime AND e.endTime > :startTime " +
+           "AND e.active = true ORDER BY e.startTime ASC")
+    List<Event> findConflictingEvents(@Param("venueId") Long venueId,
+                                     @Param("startTime") LocalDateTime startTime,
+                                     @Param("endTime") LocalDateTime endTime);
+
+    /**
+     * Check if event conflict exists excluding a specific event (for updates)
+     */
+    @Query("SELECT CASE WHEN COUNT(e) > 0 THEN true ELSE false END " +
+           "FROM Event e WHERE e.venue.id = :venueId " +
+           "AND e.startTime < :endTime AND e.endTime > :startTime " +
+           "AND e.active = true AND e.id <> :excludeId")
+    boolean existsEventConflictExcluding(@Param("venueId") Long venueId,
+                                        @Param("startTime") LocalDateTime startTime,
+                                        @Param("endTime") LocalDateTime endTime,
+                                        @Param("excludeId") Long excludeId);
+
+    /**
+     * Check conflict for a specific venue on a specific date and time range
+     */
+    @Query("SELECT CASE WHEN COUNT(e) > 0 THEN true ELSE false END " +
+           "FROM Event e WHERE e.venue.id = :venueId " +
+           "AND e.startTime < :endTime AND e.endTime > :startTime " +
+           "AND e.active = true")
+    boolean existsConflictForVenueAndTime(@Param("venueId") Long venueId,
+                                          @Param("startTime") LocalDateTime startTime,
+                                          @Param("endTime") LocalDateTime endTime);
 }
 

@@ -11,9 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -54,7 +52,7 @@ public class EventController {
 
     /**
      * Create a new event
-     * Returns CollisionResponse with recommendations if collision occurs
+     * Returns CollisionResponse with alternatives if collision occurs
      */
     @PostMapping
     public ResponseEntity<?> createEvent(@RequestBody EventRequestDTO requestDTO) {
@@ -62,18 +60,39 @@ public class EventController {
             EventResponseDTO savedEvent = eventService.createEvent(requestDTO);
             return new ResponseEntity<>(savedEvent, HttpStatus.CREATED);
         } catch (EventCollisionException e) {
-            // Return collision response with recommendations
             return new ResponseEntity<>(e.getCollisionResponse(), HttpStatus.CONFLICT);
         } catch (IllegalArgumentException e) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         } catch (RuntimeException e) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * Pre-check for conflicts before creating the event
+     * Returns 200 with CollisionResponse if conflict exists,
+     * or 200 with { collision: false } if no conflict
+     */
+    @PostMapping("/check-conflict")
+    public ResponseEntity<?> checkConflict(@RequestBody EventRequestDTO requestDTO) {
+        try {
+            CollisionResponse response = eventService.checkConflict(requestDTO);
+            if (response != null) {
+                return new ResponseEntity<>(response, HttpStatus.OK);
+            }
+            // No conflict
+            CollisionResponse noConflict = new CollisionResponse(false, "No conflict detected");
+            return new ResponseEntity<>(noConflict, HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        } catch (RuntimeException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     /**
      * Update an event
-     * Returns CollisionResponse with recommendations if collision occurs
+     * Returns CollisionResponse with alternatives if collision occurs
      */
     @PutMapping("/{id}")
     public ResponseEntity<?> updateEvent(@PathVariable Long id, @RequestBody EventRequestDTO requestDTO) {
@@ -81,12 +100,11 @@ public class EventController {
             EventResponseDTO updatedEvent = eventService.updateEvent(id, requestDTO);
             return new ResponseEntity<>(updatedEvent, HttpStatus.OK);
         } catch (EventCollisionException e) {
-            // Return collision response with recommendations
             return new ResponseEntity<>(e.getCollisionResponse(), HttpStatus.CONFLICT);
         } catch (IllegalArgumentException e) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         } catch (RuntimeException e) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
         }
     }
 
@@ -141,6 +159,3 @@ public class EventController {
         return new ResponseEntity<>(count, HttpStatus.OK);
     }
 }
-
-
-

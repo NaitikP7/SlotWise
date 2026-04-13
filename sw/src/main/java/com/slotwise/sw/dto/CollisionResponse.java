@@ -4,14 +4,15 @@ import java.util.List;
 
 /**
  * CollisionResponse DTO returned when an event collision is detected
- * Contains error message and alternative recommendations
+ * Contains error message, conflicting event details, and alternative recommendations
  */
 public class CollisionResponse {
     private boolean collision;
     private String message;
-    private List<VenueResponseDTO> sameTimeAlternativeVenues;
-    private List<TimeSlot> availableTimeSlots;
-    private TimeSlot closestAvailableSlot;
+    private ConflictingEventInfo conflictingEvent;
+    private List<TimeSlot> alternativeTimeSlots;
+    private List<AlternativeDay> alternativeDays;
+    private List<VenueResponseDTO> alternativeVenues;
 
     // Constructors
     public CollisionResponse() {
@@ -22,67 +23,35 @@ public class CollisionResponse {
         this.message = message;
     }
 
-    public CollisionResponse(boolean collision, String message, 
-                            List<VenueResponseDTO> sameTimeAlternativeVenues,
-                            List<TimeSlot> availableTimeSlots,
-                            TimeSlot closestAvailableSlot) {
+    public CollisionResponse(boolean collision, String message,
+                             ConflictingEventInfo conflictingEvent,
+                             List<TimeSlot> alternativeTimeSlots,
+                             List<AlternativeDay> alternativeDays,
+                             List<VenueResponseDTO> alternativeVenues) {
         this.collision = collision;
         this.message = message;
-        this.sameTimeAlternativeVenues = sameTimeAlternativeVenues;
-        this.availableTimeSlots = availableTimeSlots;
-        this.closestAvailableSlot = closestAvailableSlot;
+        this.conflictingEvent = conflictingEvent;
+        this.alternativeTimeSlots = alternativeTimeSlots;
+        this.alternativeDays = alternativeDays;
+        this.alternativeVenues = alternativeVenues;
     }
 
     // Getters and Setters
-    public boolean isCollision() {
-        return collision;
-    }
+    public boolean isCollision() { return collision; }
+    public void setCollision(boolean collision) { this.collision = collision; }
 
-    public void setCollision(boolean collision) {
-        this.collision = collision;
-    }
+    public String getMessage() { return message; }
+    public void setMessage(String message) { this.message = message; }
 
-    public String getMessage() {
-        return message;
-    }
+    public ConflictingEventInfo getConflictingEvent() { return conflictingEvent; }
+    public void setConflictingEvent(ConflictingEventInfo conflictingEvent) { this.conflictingEvent = conflictingEvent; }
 
-    public void setMessage(String message) {
-        this.message = message;
-    }
+    public List<TimeSlot> getAlternativeTimeSlots() { return alternativeTimeSlots; }
+    public void setAlternativeTimeSlots(List<TimeSlot> alternativeTimeSlots) { this.alternativeTimeSlots = alternativeTimeSlots; }
 
-    public List<VenueResponseDTO> getSameTimeAlternativeVenues() {
-        return sameTimeAlternativeVenues;
-    }
+    public List<AlternativeDay> getAlternativeDays() { return alternativeDays; }
+    public void setAlternativeDays(List<AlternativeDay> alternativeDays) { this.alternativeDays = alternativeDays; }
 
-    public void setSameTimeAlternativeVenues(List<VenueResponseDTO> sameTimeAlternativeVenues) {
-        this.sameTimeAlternativeVenues = sameTimeAlternativeVenues;
-    }
-
-    public List<TimeSlot> getAvailableTimeSlots() {
-        return availableTimeSlots;
-    }
-
-    public void setAvailableTimeSlots(List<TimeSlot> availableTimeSlots) {
-        this.availableTimeSlots = availableTimeSlots;
-    }
-
-    public TimeSlot getClosestAvailableSlot() {
-        return closestAvailableSlot;
-    }
-
-    public void setClosestAvailableSlot(TimeSlot closestAvailableSlot) {
-        this.closestAvailableSlot = closestAvailableSlot;
-    }
-
-    @Override
-    public String toString() {
-        return "CollisionResponse{" +
-                "collision=" + collision +
-                ", message='" + message + '\'' +
-                ", sameTimeAlternativeVenues=" + sameTimeAlternativeVenues +
-                ", availableTimeSlots=" + availableTimeSlots +
-                ", closestAvailableSlot=" + closestAvailableSlot +
-                '}';
-    }
+    public List<VenueResponseDTO> getAlternativeVenues() { return alternativeVenues; }
+    public void setAlternativeVenues(List<VenueResponseDTO> alternativeVenues) { this.alternativeVenues = alternativeVenues; }
 }
-

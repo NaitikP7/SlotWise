@@ -75,6 +75,7 @@ export const eventAPI = {
   create: (data) => api.post('/events', data),
   update: (id, data) => api.put(`/events/${id}`, data),
   delete: (id) => api.delete(`/events/${id}`),
+  checkConflict: (data) => api.post('/events/check-conflict', data),
   searchByTitle: (title) => api.get('/events/search/title', { params: { title } }),
   searchByLocation: (location) => api.get('/events/search/location', { params: { location } }),
   searchByDateRange: (start, end) => api.get('/events/search/date-range', { params: { start, end } }),
