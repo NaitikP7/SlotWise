@@ -138,7 +138,7 @@ export default function CreateEventPage({ onNavigate, onConflict }) {
               <select id="evt-venue" className={`form-select ${errors.venueId ? 'error' : ''}`}
                 value={form.venueId} onChange={(e) => set('venueId', e.target.value)}>
                 <option value="">Select venue...</option>
-                {venues.map(v => <option key={v.id} value={v.id}>{v.name} ({v.capacity} seats)</option>)}
+                {venues.map(v => <option key={v.id} value={v.id}>{v.name} ({v.capacity} seats) - {v.location}</option>)}
               </select>
               {errors.venueId && <div className="form-error">{errors.venueId}</div>}
             </div>

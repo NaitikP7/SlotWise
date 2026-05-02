@@ -48,7 +48,7 @@ export default function LoginPage() {
       <header className="login-header">
         <div className="navbar-brand">
           <div className="navbar-brand-icon">
-            <span className="material-symbols-outlined">bolt</span>
+            <img src="/slogo.png" style={{ height: '200px', width: 'auto' }} alt="SlotWise" />
           </div>
           <span className="navbar-brand-text">SlotWise</span>
         </div>
