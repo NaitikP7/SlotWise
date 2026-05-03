@@ -13,4 +13,5 @@ public interface VenueRepository extends JpaRepository<Venue, Long> {
     List<Venue> findByInstituteId(Long instituteId);
     boolean existsByName(String name);
     List<Venue> findAllByIdNot(Long id);
+    List<Venue> findByCapacityGreaterThanEqual(Integer capacity);
 }

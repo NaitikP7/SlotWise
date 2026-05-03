@@ -131,6 +131,15 @@ public class EventController {
     }
 
     /**
+     * Find events by organizer ID — for "Your Events" page
+     */
+    @GetMapping("/organizer/{organizerId}")
+    public ResponseEntity<List<EventResponseDTO>> getEventsByOrganizer(@PathVariable Long organizerId) {
+        List<EventResponseDTO> events = eventService.getEventsByOrganizer(organizerId);
+        return new ResponseEntity<>(events, HttpStatus.OK);
+    }
+
+    /**
      * Find events by location
      */
     @GetMapping("/search/location")
@@ -157,5 +166,50 @@ public class EventController {
     public ResponseEntity<Long> countActiveEvents() {
         long count = eventService.countActiveEvents();
         return new ResponseEntity<>(count, HttpStatus.OK);
+    }
+
+    // ========== Conflict Log Management ==========
+
+    @Autowired
+    private com.slotwise.sw.service.ConflictLogService conflictLogService;
+
+    /**
+     * Update conflict status (PENDING → RESOLVED or IGNORED)
+     */
+    @PatchMapping("/conflicts/{conflictId}/resolve")
+    public ResponseEntity<?> resolveConflict(
+            @PathVariable Long conflictId,
+            @RequestParam String status,
+            @RequestParam(required = false) String resolutionType) {
+        try {
+            var updated = conflictLogService.updateStatus(conflictId, status, resolutionType);
+            return new ResponseEntity<>(updated, HttpStatus.OK);
+        } catch (RuntimeException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+        }
+    }
+
+    /**
+     * Cancel an event (soft-cancel — sets active = false)
+     */
+    @PatchMapping("/{id}/cancel")
+    public ResponseEntity<?> cancelEvent(@PathVariable Long id) {
+        try {
+            var event = eventService.getEventById(id);
+            if (event.isEmpty()) {
+                return new ResponseEntity<>("Event not found", HttpStatus.NOT_FOUND);
+            }
+            EventRequestDTO cancelDTO = new EventRequestDTO();
+            cancelDTO.setActive(false);
+            cancelDTO.setTitle(event.get().getTitle());
+            cancelDTO.setStartTime(event.get().getStartTime());
+            cancelDTO.setEndTime(event.get().getEndTime());
+            cancelDTO.setVenueId(event.get().getVenueId());
+            cancelDTO.setOrganizerId(event.get().getOrganizerId());
+            EventResponseDTO updatedEvent = eventService.updateEvent(id, cancelDTO);
+            return new ResponseEntity<>(updatedEvent, HttpStatus.OK);
+        } catch (RuntimeException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }

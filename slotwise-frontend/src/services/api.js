@@ -61,6 +61,7 @@ export const venueAPI = {
   getById: (id) => api.get(`/venues/${id}`),
   getByName: (name) => api.get(`/venues/name/${name}`),
   getByInstitute: (instituteId) => api.get(`/venues/institute/${instituteId}`),
+  getByMinCapacity: (cap) => api.get(`/venues/capacity/${cap}`),
   create: (data) => api.post('/venues', data),
   update: (id, data) => api.put(`/venues/${id}`, data),
   delete: (id) => api.delete(`/venues/${id}`),
@@ -75,11 +76,23 @@ export const eventAPI = {
   create: (data) => api.post('/events', data),
   update: (id, data) => api.put(`/events/${id}`, data),
   delete: (id) => api.delete(`/events/${id}`),
+  cancel: (id) => api.patch(`/events/${id}/cancel`),
   checkConflict: (data) => api.post('/events/check-conflict', data),
+  resolveConflict: (conflictId, status, resolutionType) =>
+    api.patch(`/events/conflicts/${conflictId}/resolve`, null, { params: { status, resolutionType } }),
+  getByOrganizer: (userId) => api.get(`/events/organizer/${userId}`),
   searchByTitle: (title) => api.get('/events/search/title', { params: { title } }),
   searchByLocation: (location) => api.get('/events/search/location', { params: { location } }),
   searchByDateRange: (start, end) => api.get('/events/search/date-range', { params: { start, end } }),
   countActive: () => api.get('/events/count/active'),
+};
+
+// ==================== ADMIN ANALYTICS ====================
+export const analyticsAPI = {
+  getOverview: (params) => api.get('/admin/analytics/overview', { params }),
+  getVenue: (params) => api.get('/admin/analytics/venue', { params }),
+  getConflicts: (params) => api.get('/admin/analytics/conflicts', { params }),
+  getDepartments: (params) => api.get('/admin/analytics/departments', { params }),
 };
 
 export default api;

@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ToastProvider } from './components/Toast';
+import SplashScreen from './components/SplashScreen';
 import LoginPage from './pages/LoginPage';
 import MainApp from './pages/MainApp';
 
@@ -21,6 +23,12 @@ function LoginGate() {
 }
 
 export default function App() {
+  const [showSplash, setShowSplash] = useState(true);
+
+  if (showSplash) {
+    return <SplashScreen onFinish={() => setShowSplash(false)} />;
+  }
+
   return (
     <BrowserRouter>
       <AuthProvider>

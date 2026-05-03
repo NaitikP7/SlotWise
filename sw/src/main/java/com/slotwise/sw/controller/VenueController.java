@@ -58,6 +58,15 @@ public class VenueController {
     }
 
     /**
+     * Get venues by minimum capacity — for capacity-based filtering
+     */
+    @GetMapping("/capacity/{minCapacity}")
+    public ResponseEntity<List<VenueResponseDTO>> getVenuesByCapacity(@PathVariable Integer minCapacity) {
+        List<VenueResponseDTO> venues = venueService.getVenuesByMinCapacity(minCapacity);
+        return new ResponseEntity<>(venues, HttpStatus.OK);
+    }
+
+    /**
      * Create new venue
      */
     @PostMapping

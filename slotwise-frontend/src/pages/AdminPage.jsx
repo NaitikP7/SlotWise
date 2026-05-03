@@ -6,53 +6,80 @@ import UsersPanel from '../components/panels/UsersPanel';
 import VenuesPanel from '../components/panels/VenuesPanel';
 import EventsPanel from '../components/panels/EventsPanel';
 
-const sections = [
-  { id: 'overview', label: 'Overview', icon: 'dashboard', component: OverviewPanel },
-  { id: 'institutes', label: 'Institutes', icon: 'account_balance', component: InstitutesPanel },
-  { id: 'departments', label: 'Departments', icon: 'folder', component: DepartmentsPanel },
-  { id: 'users', label: 'Users', icon: 'group', component: UsersPanel },
-  { id: 'venues', label: 'Venues', icon: 'location_on', component: VenuesPanel },
-  { id: 'events', label: 'Events', icon: 'event', component: EventsPanel },
+/**
+ * AdminPage — Admin dashboard with sidebar navigation
+ * Mobile-responsive: sidebar collapses to slide-out drawer
+ */
+const panels = [
+  { id: 'overview', label: 'Overview', icon: 'dashboard' },
+  { id: 'institutes', label: 'Institutes', icon: 'account_balance' },
+  { id: 'departments', label: 'Departments', icon: 'folder' },
+  { id: 'users', label: 'Users', icon: 'group' },
+  { id: 'venues', label: 'Venues', icon: 'domain' },
+  { id: 'events', label: 'Events', icon: 'event' },
 ];
 
 export default function AdminPage() {
-  const [activeSection, setActiveSection] = useState('overview');
-  const section = sections.find(s => s.id === activeSection) || sections[0];
-  const Panel = section.component;
+  const [activePanel, setActivePanel] = useState('overview');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const handlePanelChange = (id) => {
+    setActivePanel(id);
+    setSidebarOpen(false); // close mobile sidebar
+  };
+
+  const renderPanel = () => {
+    switch (activePanel) {
+      case 'overview': return <OverviewPanel />;
+      case 'institutes': return <InstitutesPanel />;
+      case 'departments': return <DepartmentsPanel />;
+      case 'users': return <UsersPanel />;
+      case 'venues': return <VenuesPanel />;
+      case 'events': return <EventsPanel />;
+      default: return <OverviewPanel />;
+    }
+  };
 
   return (
     <div className="admin-layout">
+      {/* Mobile sidebar toggle */}
+      <button className="admin-sidebar-toggle" onClick={() => setSidebarOpen(!sidebarOpen)}>
+        <span className="material-symbols-outlined">{sidebarOpen ? 'close' : 'menu'}</span>
+        <span>Admin Menu</span>
+      </button>
+
+      {/* Mobile overlay */}
+      {sidebarOpen && <div className="admin-sidebar-overlay" onClick={() => setSidebarOpen(false)} />}
+
       {/* Sidebar */}
-      <aside className="admin-sidebar">
-        <div className="admin-sidebar-header">Management</div>
+      <aside className={`admin-sidebar ${sidebarOpen ? 'admin-sidebar-open' : ''}`}>
+        <div className="admin-sidebar-header">
+          <span className="material-symbols-outlined" style={{ fontSize: 22 }}>admin_panel_settings</span>
+          <span>Admin Panel</span>
+        </div>
         <nav className="admin-sidebar-nav">
-          {sections.map(s => (
+          {panels.map(p => (
             <button
-              key={s.id}
-              className={`admin-nav-link ${activeSection === s.id ? 'active' : ''}`}
-              onClick={() => setActiveSection(s.id)}
+              key={p.id}
+              className={`admin-sidebar-btn ${activePanel === p.id ? 'active' : ''}`}
+              onClick={() => handlePanelChange(p.id)}
             >
-              <span className="material-symbols-outlined">{s.icon}</span>
-              {s.label}
+              <span className="material-symbols-outlined" style={{ fontSize: 20 }}>{p.icon}</span>
+              {p.label}
             </button>
           ))}
         </nav>
       </aside>
 
-      {/* Main */}
-      <div className="admin-main">
-        <div className="page-container">
-          <div className="page-header">
-            <div>
-              <h1 className="page-title">{section.label}</h1>
-              <p className="page-subtitle">
-                {activeSection === 'overview' ? 'System-wide analytics and recent activity' : `Manage ${section.label.toLowerCase()}`}
-              </p>
-            </div>
-          </div>
-          <Panel key={activeSection} />
+      {/* Content */}
+      <main className="admin-content">
+        <div className="admin-content-header">
+          <h2 className="page-title" style={{ fontSize: '1.375rem' }}>
+            {panels.find(p => p.id === activePanel)?.label || 'Overview'}
+          </h2>
         </div>
-      </div>
+        {renderPanel()}
+      </main>
     </div>
   );
 }

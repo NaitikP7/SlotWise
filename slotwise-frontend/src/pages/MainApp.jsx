@@ -1,82 +1,74 @@
-import { useState, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useState } from 'react';
+import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import VenueGridPage from './VenueGridPage';
 import EventsListPage from './EventsListPage';
 import CreateEventPage from './CreateEventPage';
+import YourEventsPage from './YourEventsPage';
 import ConflictResolutionPage from './ConflictResolutionPage';
 import AdminPage from './AdminPage';
+import AnalyticsPage from './AnalyticsPage';
+import { useAuth } from '../context/AuthContext';
 
+/**
+ * MainApp — Authenticated layout wrapper
+ * Handles navigation, routing, and conflict state
+ */
 export default function MainApp() {
-  const location = useLocation();
-  const navigate = useNavigate();
   const { user } = useAuth();
-
-  // State for conflict resolution data (passed from CreateEventPage)
+  const navigate = useNavigate();
+  const location = useLocation();
   const [conflictState, setConflictState] = useState(null);
 
-  const pathToRoute = (path) => {
-    const p = path.replace(/^\//, '');
-    if (p === 'admin') return 'admin';
-    if (p === 'events') return 'events';
-    if (p === 'create-event') return 'create-event';
-    if (p === 'conflict-resolution') return 'conflict-resolution';
+  // Map URL path to active route for navbar highlighting
+  const getActiveRoute = () => {
+    const path = location.pathname;
+    if (path.startsWith('/admin')) return 'admin';
+    if (path.startsWith('/analytics')) return 'analytics';
+    if (path.startsWith('/create-event')) return 'create-event';
+    if (path.startsWith('/your-events')) return 'your-events';
+    if (path.startsWith('/events')) return 'events';
+    if (path.startsWith('/conflict')) return 'create-event';
     return 'dashboard';
   };
 
-  const [route, setRoute] = useState(pathToRoute(location.pathname));
-
-  useEffect(() => {
-    setRoute(pathToRoute(location.pathname));
-  }, [location.pathname]);
-
-  const handleNavigate = (id) => {
-    // Clear conflict state when navigating away from conflict resolution
-    if (id !== 'conflict-resolution') {
-      setConflictState(null);
-    }
-    setRoute(id);
-    navigate(`/${id === 'dashboard' ? 'dashboard' : id}`);
+  const handleNavigate = (route) => {
+    const routeMap = {
+      dashboard: '/dashboard',
+      events: '/events',
+      'create-event': '/create-event',
+      'your-events': '/your-events',
+      admin: '/admin',
+      analytics: '/analytics',
+    };
+    navigate(routeMap[route] || '/dashboard');
   };
 
-  const handleConflict = ({ conflictData, originalForm }) => {
-    setConflictState({ conflictData, originalForm });
-    setRoute('conflict-resolution');
+  const handleConflict = (data) => {
+    setConflictState(data);
     navigate('/conflict-resolution');
   };
 
-  const effectiveRoute = (route === 'admin' && user?.role !== 'ADMIN') ? 'dashboard' : route;
-
-  const renderPage = () => {
-    switch (effectiveRoute) {
-      case 'dashboard':
-        return <VenueGridPage />;
-      case 'events':
-        return <EventsListPage />;
-      case 'create-event':
-        return <CreateEventPage onNavigate={handleNavigate} onConflict={handleConflict} />;
-      case 'conflict-resolution':
-        return (
+  return (
+    <div>
+      <Navbar activeRoute={getActiveRoute()} onNavigate={handleNavigate} />
+      <Routes>
+        <Route path="/dashboard" element={<VenueGridPage />} />
+        <Route path="/events" element={<EventsListPage />} />
+        <Route path="/create-event" element={<CreateEventPage onConflict={handleConflict} />} />
+        <Route path="/your-events" element={<YourEventsPage onConflict={handleConflict} />} />
+        <Route path="/conflict-resolution" element={
           <ConflictResolutionPage
             conflictData={conflictState?.conflictData}
             originalForm={conflictState?.originalForm}
-            onNavigate={handleNavigate}
+            onResolve={() => { setConflictState(null); navigate('/events'); }}
+            onBack={() => { setConflictState(null); navigate('/create-event'); }}
           />
-        );
-      case 'admin':
-        return <AdminPage />;
-      default:
-        return <VenueGridPage />;
-    }
-  };
-
-  return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <Navbar activeRoute={effectiveRoute} onNavigate={handleNavigate} />
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-        {renderPage()}
-      </div>
+        } />
+        <Route path="/admin/*" element={user?.role === 'ADMIN' ? <AdminPage /> : <Navigate to="/dashboard" replace />} />
+        <Route path="/analytics/*" element={user?.role === 'ADMIN' ? <AnalyticsPage /> : <Navigate to="/dashboard" replace />} />
+        <Route path="*" element={<Navigate to={user?.role === 'ADMIN' ? '/admin' : '/dashboard'} replace />} />
+      </Routes>
     </div>
   );
 }

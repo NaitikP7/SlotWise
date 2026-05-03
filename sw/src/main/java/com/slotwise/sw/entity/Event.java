@@ -28,6 +28,12 @@ public class Event {
     @Column(length = 255)
     private String location;
 
+    @Column(name = "event_type", length = 50)
+    private String eventType;
+
+    @Column(name = "expected_attendees")
+    private Integer expectedAttendees;
+
     @Column(nullable = false)
     private Boolean active = true;
 
@@ -115,6 +121,22 @@ public class Event {
 
     public void setLocation(String location) {
         this.location = location;
+    }
+
+    public String getEventType() {
+        return eventType;
+    }
+
+    public void setEventType(String eventType) {
+        this.eventType = eventType;
+    }
+
+    public Integer getExpectedAttendees() {
+        return expectedAttendees;
+    }
+
+    public void setExpectedAttendees(Integer expectedAttendees) {
+        this.expectedAttendees = expectedAttendees;
     }
 
     public Boolean getActive() {

@@ -18,6 +18,9 @@ public class EventResponseDTO {
     private String organizerName;
     private Long venueId;
     private String venueName;
+    private String eventType;
+    private Integer expectedAttendees;
+    private String departmentName;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -146,6 +149,30 @@ public class EventResponseDTO {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public String getEventType() {
+        return eventType;
+    }
+
+    public void setEventType(String eventType) {
+        this.eventType = eventType;
+    }
+
+    public Integer getExpectedAttendees() {
+        return expectedAttendees;
+    }
+
+    public void setExpectedAttendees(Integer expectedAttendees) {
+        this.expectedAttendees = expectedAttendees;
+    }
+
+    public String getDepartmentName() {
+        return departmentName;
+    }
+
+    public void setDepartmentName(String departmentName) {
+        this.departmentName = departmentName;
     }
 
     @Override

@@ -1,66 +1,118 @@
-import { useState, useEffect } from 'react';
-import { eventAPI, venueAPI } from '../services/api';
+import { useState, useEffect, useCallback } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { useToast } from '../components/Toast';
+import { eventAPI, venueAPI } from '../services/api';
 
-export default function CreateEventPage({ onNavigate, onConflict }) {
+/**
+ * CreateEventPage — Form to schedule new events.
+ * - Center-aligned card layout
+ * - No "Location" field (venue stores location)
+ * - Expected Attendees field with dynamic venue capacity filtering
+ * - Read-only Organizer (auto-filled from logged-in user)
+ * - Accepts prefill data from navigation state (dashboard quick-add)
+ */
+export default function CreateEventPage({ onConflict }) {
   const { user } = useAuth();
-  const toast = useToast();
-  const [venues, setVenues] = useState([]);
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Prefill from navigation state (from dashboard quick-add)
+  const prefill = location.state?.prefill || {};
+
+  const [allVenues, setAllVenues] = useState([]);
+  const [filteredVenues, setFilteredVenues] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [venuesLoading, setVenuesLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
   const [form, setForm] = useState({
-    title: '', description: '', startTime: '', endTime: '',
-    location: '', active: true, venueId: '',
+    title: prefill.title || '',
+    description: prefill.description || '',
+    startTime: prefill.startTime || '',
+    endTime: prefill.endTime || '',
+    venueId: prefill.venueId || '',
+    eventType: prefill.eventType || '',
+    expectedAttendees: prefill.expectedAttendees || '',
   });
-  const [errors, setErrors] = useState({});
 
+  // Fetch all venues on mount
   useEffect(() => {
-    venueAPI.getAll()
-      .then((res) => setVenues(res.data))
-      .catch(() => { });
+    const loadVenues = async () => {
+      setVenuesLoading(true);
+      try {
+        const res = await venueAPI.getAll();
+        setAllVenues(res.data);
+        setFilteredVenues(res.data);
+      } catch {
+        setError('Failed to load venues');
+      } finally {
+        setVenuesLoading(false);
+      }
+    };
+    loadVenues();
   }, []);
 
+  // Dynamic venue filtering by capacity
+  useEffect(() => {
+    const attendees = parseInt(form.expectedAttendees, 10);
+    if (attendees > 0) {
+      const matching = allVenues.filter(v => v.capacity >= attendees);
+      setFilteredVenues(matching);
+      // If currently selected venue doesn't meet capacity, clear it
+      if (form.venueId && !matching.find(v => String(v.id) === String(form.venueId))) {
+        setForm(prev => ({ ...prev, venueId: '' }));
+      }
+    } else {
+      setFilteredVenues(allVenues);
+    }
+  }, [form.expectedAttendees, allVenues]);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm(prev => ({ ...prev, [name]: value }));
+    setError('');
+    setSuccess('');
+  };
+
   const validate = () => {
-    const e = {};
-    if (!form.title.trim()) e.title = 'Event name is required';
-    if (!form.startTime) e.startTime = 'Required';
-    if (!form.endTime) e.endTime = 'Required';
-    if (form.startTime && form.endTime && new Date(form.startTime) >= new Date(form.endTime))
-      e.endTime = 'Must be after start';
-    if (!form.venueId) e.venueId = 'Venue is required';
-    setErrors(e);
-    return !Object.keys(e).length;
+    if (!form.title.trim()) return 'Event title is required';
+    if (!form.startTime) return 'Start time is required';
+    if (!form.endTime) return 'End time is required';
+    if (new Date(form.endTime) <= new Date(form.startTime)) return 'End time must be after start time';
+    if (!form.venueId) return 'Please select a venue';
+    return null;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validate()) return;
-    setLoading(true);
+    const validationError = validate();
+    if (validationError) { setError(validationError); return; }
 
-    const toISO = (dt) => {
-      if (!dt) return null;
-      return dt.length === 16 ? dt + ':00' : dt;
-    };
+    setLoading(true);
+    setError('');
+    setSuccess('');
 
     const payload = {
-      title: form.title,
-      description: form.description,
-      startTime: toISO(form.startTime),
-      endTime: toISO(form.endTime),
-      location: form.location,
-      active: form.active,
-      organizerId: user?.id ? Number(user.id) : null,
+      title: form.title.trim(),
+      description: form.description.trim(),
+      startTime: form.startTime,
+      endTime: form.endTime,
       venueId: Number(form.venueId),
+      organizerId: user?.id,
+      eventType: form.eventType || null,
+      expectedAttendees: form.expectedAttendees ? Number(form.expectedAttendees) : null,
     };
 
     try {
       await eventAPI.create(payload);
-      toast.success('Event Created', `"${form.title}" has been scheduled`);
-      if (onNavigate) onNavigate('events');
+      setSuccess('Event created successfully!');
+      // Reset form
+      setForm({ title: '', description: '', startTime: '', endTime: '', venueId: '', eventType: '', expectedAttendees: '' });
+      setTimeout(() => navigate('/events'), 1200);
     } catch (err) {
-      if (err.response?.status === 409 && err.response?.data?.collision) {
-        // Conflict detected — redirect to conflict resolution page
+      if (err.response?.status === 409 && err.response?.data) {
+        // Collision detected — pass to conflict resolution
         if (onConflict) {
           onConflict({
             conflictData: err.response.data,
@@ -68,126 +120,141 @@ export default function CreateEventPage({ onNavigate, onConflict }) {
           });
         }
       } else {
-        toast.error('Error', err.response?.data?.message || err.response?.data || 'Failed to create event');
+        setError(err.response?.data?.message || err.response?.data || 'Failed to create event. Please try again.');
       }
     } finally {
       setLoading(false);
     }
   };
 
-  const set = (k, v) => setForm({ ...form, [k]: v });
+  const eventTypes = ['Lecture', 'Workshop', 'Seminar', 'Lab', 'Meeting', 'Exam', 'Conference', 'Cultural', 'Sports', 'Other'];
 
   return (
-    <div className="page-container">
-      <div className="page-header">
-        <div>
-          <h1 className="page-title">Create New Event</h1>
-          <p className="page-subtitle">Schedule a new event at an available venue</p>
+    <div className="page-container" style={{ display: 'flex', justifyContent: 'center' }}>
+      <div style={{ width: '100%', maxWidth: 640 }}>
+        <div className="page-header" style={{ textAlign: 'center', display: 'block', marginBottom: 24 }}>
+          <h1 className="page-title">Schedule New Event</h1>
+          <p className="page-subtitle">Fill in the details to book a venue slot</p>
         </div>
-      </div>
 
-      <div className="form-card">
-        <h3 className="form-card-title">
-          <span className="material-symbols-outlined" style={{ color: 'var(--color-primary)' }}>event</span>
-          Event Information
-        </h3>
-
-        {/* Show organizer info as read-only badge
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: 10, padding: '10px 16px',
-          background: 'rgba(99, 102, 241, 0.08)', borderRadius: 10, marginBottom: 20,
-          border: '1px solid rgba(99, 102, 241, 0.15)'
-        }}>
-          <span className="material-symbols-outlined" style={{ color: 'var(--color-primary)', fontSize: 20 }}>person</span>
-          <span style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>Organizer:</span>
-          <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)' }}>{user?.name || 'You'}</span>
-          <span style={{
-            fontSize: 11, background: 'var(--color-primary)', color: '#fff',
-            padding: '2px 8px', borderRadius: 6, marginLeft: 'auto'
-          }}>Auto-assigned</span>
-        </div> */}
-
-        <form onSubmit={handleSubmit}>
-          <div className="form-group" style={{ marginBottom: 20 }}>
-            <label className="form-label" htmlFor="evt-name">
-              <span className="material-symbols-outlined">badge</span>
-              Event Name
-            </label>
-            <input id="evt-name" type="text" className={`form-input ${errors.title ? 'error' : ''}`}
-              placeholder="e.g., Q3 Quarterly Review" value={form.title}
-              onChange={(e) => set('title', e.target.value)} autoFocus />
-            {errors.title && <div className="form-error">{errors.title}</div>}
-          </div>
-
-          <div className="form-group" style={{ marginBottom: 20 }}>
-            <label className="form-label" htmlFor="evt-desc">
-              <span className="material-symbols-outlined">notes</span>
-              Description
-            </label>
-            <textarea id="evt-desc" className="form-textarea"
-              placeholder="Brief description..." value={form.description}
-              onChange={(e) => set('description', e.target.value)} rows={3} />
-          </div>
-
-          <div className="form-row" style={{ marginBottom: 20 }}>
-            <div className="form-group" style={{ flex: 1 }}>
-              <label className="form-label" htmlFor="evt-venue">
-                <span className="material-symbols-outlined">location_on</span>
-                Venue
-              </label>
-              <select id="evt-venue" className={`form-select ${errors.venueId ? 'error' : ''}`}
-                value={form.venueId} onChange={(e) => set('venueId', e.target.value)}>
-                <option value="">Select venue...</option>
-                {venues.map(v => <option key={v.id} value={v.id}>{v.name} ({v.capacity} seats) - {v.location}</option>)}
-              </select>
-              {errors.venueId && <div className="form-error">{errors.venueId}</div>}
+        <div className="table-card" style={{ padding: '32px 36px' }}>
+          {/* Organizer badge */}
+          <div className="organizer-badge" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 18px', background: 'var(--color-primary-05)', borderRadius: 'var(--radius-md)', marginBottom: 28, border: '1px solid var(--color-primary-15)' }}>
+            <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--color-primary-15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-green-text)' }}>
+              {user?.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'U'}
             </div>
-          </div>
-
-          <div className="form-row" style={{ marginBottom: 20 }}>
-            <div className="form-group">
-              <label className="form-label" htmlFor="evt-start">
-                <span className="material-symbols-outlined">schedule</span>
-                Start Time
-              </label>
-              <input id="evt-start" type="datetime-local" className={`form-input ${errors.startTime ? 'error' : ''}`}
-                value={form.startTime} onChange={(e) => set('startTime', e.target.value)} />
-              {errors.startTime && <div className="form-error">{errors.startTime}</div>}
+            <div>
+              <div style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--color-slate-900)' }}>{user?.name || 'User'}</div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--color-slate-500)' }}>Organizer · {user?.departmentName || 'N/A'}</div>
             </div>
-            <div className="form-group">
-              <label className="form-label" htmlFor="evt-end">
-                <span className="material-symbols-outlined">schedule</span>
-                End Time
-              </label>
-              <input id="evt-end" type="datetime-local" className={`form-input ${errors.endTime ? 'error' : ''}`}
-                value={form.endTime} onChange={(e) => set('endTime', e.target.value)} />
-              {errors.endTime && <div className="form-error">{errors.endTime}</div>}
+            <span className="material-symbols-outlined" style={{ marginLeft: 'auto', fontSize: 16, color: 'var(--color-primary)' }}>verified</span>
+          </div>
+
+          {error && (
+            <div className="login-error" style={{ marginBottom: 20 }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 16 }}>error</span>
+              {error}
             </div>
-          </div>
+          )}
 
-          <div className="form-group" style={{ marginBottom: 20 }}>
-            <label className="form-label" htmlFor="evt-loc">
-              <span className="material-symbols-outlined">meeting_room</span>
-              Location Details
-            </label>
-            <input id="evt-loc" type="text" className="form-input"
-              placeholder="e.g., Room 304, Building A" value={form.location}
-              onChange={(e) => set('location', e.target.value)} />
-          </div>
+          {success && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 16px', background: 'rgba(159,223,32,0.1)', border: '1px solid rgba(159,223,32,0.3)', borderRadius: 'var(--radius-md)', color: '#6a9a12', fontSize: '0.875rem', fontWeight: 600, marginBottom: 20 }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 16 }}>check_circle</span>
+              {success}
+            </div>
+          )}
 
-          <div className="form-card-footer">
-            <button type="button" className="btn btn-secondary" onClick={() => onNavigate && onNavigate('events')}>
-              Cancel
-            </button>
-            <button type="submit" className="btn btn-primary" disabled={loading}>
-              {loading ? (
-                <><span className="spinner" style={{ width: 16, height: 16, borderWidth: 2 }} /> Scheduling...</>
+          <form onSubmit={handleSubmit}>
+            {/* Title */}
+            <div className="form-group" style={{ marginBottom: 20 }}>
+              <label className="form-label" htmlFor="ce-title">
+                <span className="material-symbols-outlined">event</span> Event Title
+              </label>
+              <input id="ce-title" name="title" type="text" className="form-input" placeholder="e.g., Machine Learning Workshop" value={form.title} onChange={handleChange} autoFocus />
+            </div>
+
+            {/* Description */}
+            <div className="form-group" style={{ marginBottom: 20 }}>
+              <label className="form-label" htmlFor="ce-desc">
+                <span className="material-symbols-outlined">description</span> Description <span className="form-label-sub">(optional)</span>
+              </label>
+              <textarea id="ce-desc" name="description" className="form-textarea" placeholder="Describe the event..." rows={3} value={form.description} onChange={handleChange} />
+            </div>
+
+            {/* Date/Time row */}
+            <div className="form-row" style={{ marginBottom: 20 }}>
+              <div className="form-group">
+                <label className="form-label" htmlFor="ce-start">
+                  <span className="material-symbols-outlined">schedule</span> Start Time
+                </label>
+                <input id="ce-start" name="startTime" type="datetime-local" className="form-input" value={form.startTime} onChange={handleChange} />
+              </div>
+              <div className="form-group">
+                <label className="form-label" htmlFor="ce-end">
+                  <span className="material-symbols-outlined">schedule</span> End Time
+                </label>
+                <input id="ce-end" name="endTime" type="datetime-local" className="form-input" value={form.endTime} onChange={handleChange} />
+              </div>
+            </div>
+
+            {/* Event Type + Expected Attendees row */}
+            <div className="form-row" style={{ marginBottom: 20 }}>
+              <div className="form-group">
+                <label className="form-label" htmlFor="ce-type">
+                  <span className="material-symbols-outlined">category</span> Event Type <span className="form-label-sub">(optional)</span>
+                </label>
+                <select id="ce-type" name="eventType" className="form-select" value={form.eventType} onChange={handleChange}>
+                  <option value="">Select type...</option>
+                  {eventTypes.map(t => <option key={t} value={t}>{t}</option>)}
+                </select>
+              </div>
+              <div className="form-group">
+                <label className="form-label" htmlFor="ce-attendees">
+                  <span className="material-symbols-outlined">groups</span> Expected Attendees
+                </label>
+                <input id="ce-attendees" name="expectedAttendees" type="number" min="1" className="form-input" placeholder="e.g., 50" value={form.expectedAttendees} onChange={handleChange} />
+              </div>
+            </div>
+
+            {/* Venue (dynamically filtered by capacity) */}
+            <div className="form-group" style={{ marginBottom: 24 }}>
+              <label className="form-label" htmlFor="ce-venue">
+                <span className="material-symbols-outlined">location_on</span> Venue
+                {form.expectedAttendees && parseInt(form.expectedAttendees) > 0 && (
+                  <span className="form-label-sub" style={{ marginLeft: 4 }}>
+                    (showing venues with capacity ≥ {form.expectedAttendees})
+                  </span>
+                )}
+              </label>
+              {venuesLoading ? (
+                <div style={{ padding: 12, color: 'var(--color-slate-400)', fontSize: '0.875rem' }}>Loading venues...</div>
               ) : (
-                <><span className="material-symbols-outlined" style={{ fontSize: 18 }}>event_available</span> Schedule Event</>
+                <select id="ce-venue" name="venueId" className="form-select" value={form.venueId} onChange={handleChange}>
+                  <option value="">Select venue...</option>
+                  {filteredVenues.map(v => (
+                    <option key={v.id} value={v.id}>
+                      {v.name} — Capacity: {v.capacity}{v.instituteName ? ` · ${v.instituteName}` : ''}
+                    </option>
+                  ))}
+                </select>
+              )}
+              {form.expectedAttendees && parseInt(form.expectedAttendees) > 0 && filteredVenues.length === 0 && (
+                <div className="form-error" style={{ marginTop: 6 }}>
+                  No venues available with capacity ≥ {form.expectedAttendees}. Try reducing the number.
+                </div>
+              )}
+            </div>
+
+            {/* Submit */}
+            <button type="submit" className="login-btn" disabled={loading} style={{ marginTop: 8 }}>
+              {loading ? (
+                <><span className="spinner" style={{ width: 18, height: 18, borderWidth: 2 }} /> Creating...</>
+              ) : (
+                <><span className="material-symbols-outlined">add_circle</span> Schedule Event</>
               )}
             </button>
-          </div>
-        </form>
+          </form>
+        </div>
       </div>
     </div>
   );

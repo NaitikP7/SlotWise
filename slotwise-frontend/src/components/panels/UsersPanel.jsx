@@ -58,12 +58,16 @@ export default function UsersPanel() {
     e.preventDefault(); if (!validate()) return;
     setFormLoading(true);
     const payload = { name: formData.name, email: formData.email, departmentId: Number(formData.departmentId), role: formData.role, active: formData.active };
-    if (formData.password) payload.password = formData.password;
+    // Only include password if provided (avoids overwriting with empty string)
+    if (formData.password && formData.password.trim()) payload.password = formData.password;
     try {
       if (editingItem) { await userAPI.update(editingItem.id, payload); toast.success('Updated', `"${formData.name}" updated`); }
-      else { payload.password = formData.password; await userAPI.create(payload); toast.success('Created', `"${formData.name}" added`); }
+      else { if (!formData.password) { toast.error('Error', 'Password is required for new users'); setFormLoading(false); return; } payload.password = formData.password; await userAPI.create(payload); toast.success('Created', `"${formData.name}" added`); }
       setShowForm(false); fetchData();
-    } catch (err) { toast.error('Error', err.response?.status === 400 ? 'Email may already exist' : 'Operation failed'); }
+    } catch (err) {
+      const errMsg = typeof err.response?.data === 'string' ? err.response.data : (err.response?.status === 400 ? 'Email may already exist' : 'Operation failed');
+      toast.error('Error', errMsg);
+    }
     finally { setFormLoading(false); }
   };
 

@@ -39,4 +39,8 @@ public class ConflictingEventInfo {
 
     public Long getVenueId() { return venueId; }
     public void setVenueId(Long venueId) { this.venueId = venueId; }
+
+    private String organizerName;
+    public String getOrganizerName() { return organizerName; }
+    public void setOrganizerName(String organizerName) { this.organizerName = organizerName; }
 }

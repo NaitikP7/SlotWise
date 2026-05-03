@@ -3,13 +3,13 @@ import { eventAPI } from '../services/api';
 import { useToast } from '../components/Toast';
 
 /**
- * ConflictResolutionPage — shown when event creation hits a scheduling conflict.
+ * ConflictResolutionPage — shown when event creation/edit hits a scheduling conflict.
  * Displays the conflicting event details and offers 3 alternative categories:
- *   A) Alternative time slots (same day, same venue)
+ *   A) Alternative time slots (same day, same venue) — ALL valid slots
  *   B) Alternative days (same time, same venue)
- *   C) Alternative venues (same time, same day)
+ *   C) Alternative venues (same time, same day) — with institute & capacity
  */
-export default function ConflictResolutionPage({ conflictData, originalForm, onNavigate }) {
+export default function ConflictResolutionPage({ conflictData, originalForm, onResolve, onBack }) {
   const toast = useToast();
   const [activeTab, setActiveTab] = useState('time');
   const [selectedAlt, setSelectedAlt] = useState(null);
@@ -22,7 +22,7 @@ export default function ConflictResolutionPage({ conflictData, originalForm, onN
           <span className="material-symbols-outlined" style={{ fontSize: 56, color: 'var(--color-text-muted)' }}>info</span>
           <h2>No conflict data</h2>
           <p>Return to the event creation form to start again.</p>
-          <button className="btn btn-primary" onClick={() => onNavigate && onNavigate('create-event')}>
+          <button className="btn btn-primary" onClick={() => onBack && onBack()}>
             <span className="material-symbols-outlined" style={{ fontSize: 18 }}>arrow_back</span>
             Back to Create Event
           </button>
@@ -33,7 +33,6 @@ export default function ConflictResolutionPage({ conflictData, originalForm, onN
 
   const { conflictingEvent, alternativeTimeSlots = [], alternativeDays = [], alternativeVenues = [] } = conflictData;
 
-  // Format a LocalDateTime string (e.g., "2026-04-14T09:00:00") to readable time
   const formatTime = (dt) => {
     if (!dt) return '';
     try {
@@ -45,7 +44,6 @@ export default function ConflictResolutionPage({ conflictData, originalForm, onN
     }
   };
 
-  // Format a LocalDateTime/LocalDate string to readable date
   const formatDate = (dt) => {
     if (!dt) return '';
     try {
@@ -55,6 +53,15 @@ export default function ConflictResolutionPage({ conflictData, originalForm, onN
     } catch {
       return String(dt);
     }
+  };
+
+  /**
+   * Get "why recommended" label based on slot position
+   */
+  const getTimeSlotReason = (index, total) => {
+    if (index === 0) return 'Closest to requested time';
+    if (index === 1) return 'Next closest slot';
+    return 'Available slot';
   };
 
   const handleSelect = (type, index) => {
@@ -72,7 +79,6 @@ export default function ConflictResolutionPage({ conflictData, originalForm, onN
 
     if (selectedAlt.type === 'time') {
       const slot = alternativeTimeSlots[selectedAlt.index];
-      // TimeSlot now has full LocalDateTime values — use directly
       payload.startTime = slot.startTime;
       payload.endTime = slot.endTime;
     } else if (selectedAlt.type === 'day') {
@@ -84,18 +90,14 @@ export default function ConflictResolutionPage({ conflictData, originalForm, onN
       payload.venueId = venue.id;
     }
 
-    console.log('[ConflictResolution] Creating event with payload:', JSON.stringify(payload, null, 2));
-
     try {
       await eventAPI.create(payload);
       toast.success('Event Created', `"${payload.title}" has been scheduled successfully`);
-      if (onNavigate) onNavigate('events');
+      if (onResolve) onResolve();
     } catch (err) {
-      console.error('[ConflictResolution] Create failed:', err.response?.status, err.response?.data);
       if (err.response?.status === 409) {
         toast.error('Still Conflicting', 'The selected alternative also has a conflict. Please try another option.');
       } else {
-        // Show actual error from backend (it returns a string, not { message: ... })
         const errMsg = typeof err.response?.data === 'string'
           ? err.response.data
           : (err.response?.data?.message || 'Failed to create event');
@@ -107,9 +109,9 @@ export default function ConflictResolutionPage({ conflictData, originalForm, onN
   };
 
   const tabs = [
-    { id: 'time', label: 'Alternative Times', icon: 'schedule', count: alternativeTimeSlots.length },
-    { id: 'day', label: 'Alternative Days', icon: 'calendar_month', count: alternativeDays.length },
-    { id: 'venue', label: 'Alternative Venues', icon: 'location_on', count: alternativeVenues.length },
+    { id: 'time', label: 'Same Venue — Alt. Times', icon: 'schedule', count: alternativeTimeSlots.length },
+    { id: 'day', label: 'Same Venue — Alt. Days', icon: 'calendar_month', count: alternativeDays.length },
+    { id: 'venue', label: 'Alt. Venues — Same Time', icon: 'location_on', count: alternativeVenues.length },
   ];
 
   return (
@@ -143,6 +145,12 @@ export default function ConflictResolutionPage({ conflictData, originalForm, onN
                 <span className="material-symbols-outlined" style={{ fontSize: 16 }}>location_on</span>
                 <span>{conflictingEvent.venueName}</span>
               </div>
+              {conflictingEvent.organizerName && (
+                <div className="cr-conflict-detail">
+                  <span className="material-symbols-outlined" style={{ fontSize: 16 }}>person</span>
+                  <span>Booked by <strong>{conflictingEvent.organizerName}</strong></span>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -175,7 +183,7 @@ export default function ConflictResolutionPage({ conflictData, originalForm, onN
 
       {/* Tab Content */}
       <div className="cr-options-grid">
-        {/* Time Slots — now use formatTime since values are LocalDateTime strings */}
+        {/* Time Slots — ALL valid slots, sorted by proximity */}
         {activeTab === 'time' && (
           alternativeTimeSlots.length > 0 ? (
             alternativeTimeSlots.map((slot, i) => (
@@ -192,6 +200,7 @@ export default function ConflictResolutionPage({ conflictData, originalForm, onN
                     {formatTime(slot.startTime)} — {formatTime(slot.endTime)}
                   </div>
                   <div className="cr-option-sub">Same day • Same venue</div>
+                  <div className="cr-option-reason">{getTimeSlotReason(i, alternativeTimeSlots.length)}</div>
                 </div>
                 <div className="cr-option-check">
                   <span className="material-symbols-outlined">
@@ -225,6 +234,7 @@ export default function ConflictResolutionPage({ conflictData, originalForm, onN
                   <div className="cr-option-sub">
                     {formatTime(day.startTime)} — {formatTime(day.endTime)} • Same venue
                   </div>
+                  <div className="cr-option-reason">Same time slot, different day</div>
                 </div>
                 <div className="cr-option-check">
                   <span className="material-symbols-outlined">
@@ -241,7 +251,7 @@ export default function ConflictResolutionPage({ conflictData, originalForm, onN
           )
         )}
 
-        {/* Venues */}
+        {/* Venues — with institute + capacity */}
         {activeTab === 'venue' && (
           alternativeVenues.length > 0 ? (
             alternativeVenues.map((venue, i) => (
@@ -258,6 +268,13 @@ export default function ConflictResolutionPage({ conflictData, originalForm, onN
                   <div className="cr-option-sub">
                     {venue.capacity} seats • {venue.location || 'No location'} • Same time
                   </div>
+                  {venue.instituteName && (
+                    <div className="cr-option-institute">
+                      <span className="material-symbols-outlined" style={{ fontSize: 14 }}>school</span>
+                      {venue.instituteName}
+                    </div>
+                  )}
+                  <div className="cr-option-reason">Available venue at same time</div>
                 </div>
                 <div className="cr-option-check">
                   <span className="material-symbols-outlined">
@@ -277,7 +294,7 @@ export default function ConflictResolutionPage({ conflictData, originalForm, onN
 
       {/* Actions */}
       <div className="cr-actions">
-        <button className="btn btn-secondary" onClick={() => onNavigate && onNavigate('create-event')}>
+        <button className="btn btn-secondary" onClick={() => onBack && onBack()}>
           <span className="material-symbols-outlined" style={{ fontSize: 18 }}>arrow_back</span>
           Cancel
         </button>

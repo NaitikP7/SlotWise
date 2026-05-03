@@ -193,7 +193,11 @@ public class UserService {
 
         user.setName(requestDTO.getName());
         user.setEmail(requestDTO.getEmail());
-        user.setPassword(requestDTO.getPassword());
+        
+        // Only update password if a new one is provided (non-null and non-blank)
+        if (requestDTO.getPassword() != null && !requestDTO.getPassword().isBlank()) {
+            user.setPassword(requestDTO.getPassword());
+        }
 
         // Update department if provided
         if (requestDTO.getDepartmentId() != null) {

@@ -113,6 +113,16 @@ public class VenueService {
     }
 
     /**
+     * Get venues with capacity >= minCapacity — for dynamic venue filtering
+     */
+    public List<VenueResponseDTO> getVenuesByMinCapacity(Integer minCapacity) {
+        return venueRepository.findByCapacityGreaterThanEqual(minCapacity)
+                .stream()
+                .map(this::convertToResponseDTO)
+                .collect(Collectors.toList());
+    }
+
+    /**
      * Create new venue from request DTO
      */
     public VenueResponseDTO createVenue(VenueRequestDTO requestDTO) {

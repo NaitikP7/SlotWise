@@ -48,9 +48,8 @@ export default function LoginPage() {
       <header className="login-header">
         <div className="navbar-brand">
           <div className="navbar-brand-icon">
-            <img src="/slogo.png" style={{ height: '200px', width: 'auto' }} alt="SlotWise" />
+            <img src="/mlogo.png" alt="SlotWise" className="login-logo-img" />
           </div>
-          <span className="navbar-brand-text">SlotWise</span>
         </div>
       </header>
 
@@ -88,13 +87,10 @@ export default function LoginPage() {
           </div>
 
           <div className="form-group">
-            <div className="form-label-row">
-              <label className="form-label" htmlFor="login-password">
-                <span className="material-symbols-outlined">key</span>
-                Password
-              </label>
-              <span className="form-forgot">Forgot password?</span>
-            </div>
+            <label className="form-label" htmlFor="login-password">
+              <span className="material-symbols-outlined">key</span>
+              Password
+            </label>
             <div className="password-wrap">
               <input
                 id="login-password" type={showPw ? 'text' : 'password'}
@@ -119,10 +115,6 @@ export default function LoginPage() {
             )}
           </button>
         </form>
-
-        <p className="login-footer-text">
-          Don't have an account?<a href="#">Request Access</a>
-        </p>
       </div>
 
       {/* Glow */}

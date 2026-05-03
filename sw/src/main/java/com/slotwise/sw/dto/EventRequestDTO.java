@@ -14,6 +14,8 @@ public class EventRequestDTO {
     private Boolean active;
     private Long organizerId;
     private Long venueId;
+    private String eventType;
+    private Integer expectedAttendees;
 
     // Constructors
     public EventRequestDTO() {
@@ -93,6 +95,22 @@ public class EventRequestDTO {
 
     public void setVenueId(Long venueId) {
         this.venueId = venueId;
+    }
+
+    public String getEventType() {
+        return eventType;
+    }
+
+    public void setEventType(String eventType) {
+        this.eventType = eventType;
+    }
+
+    public Integer getExpectedAttendees() {
+        return expectedAttendees;
+    }
+
+    public void setExpectedAttendees(Integer expectedAttendees) {
+        this.expectedAttendees = expectedAttendees;
     }
 
     @Override

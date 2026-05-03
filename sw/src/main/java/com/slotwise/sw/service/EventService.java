@@ -17,16 +17,15 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 @Service
 @Transactional
 public class EventService {
 
-    private static final LocalTime DAY_START = LocalTime.of(9, 0);  // 9 AM
-    private static final LocalTime DAY_END = LocalTime.of(17, 0);   // 5 PM
-    private static final int MAX_ALTERNATIVE_SLOTS = 3;
+    // Working hours: 8 AM to 5 PM
+    private static final LocalTime DAY_START = LocalTime.of(8, 0);
+    private static final LocalTime DAY_END = LocalTime.of(17, 0);
     private static final int MAX_ALTERNATIVE_DAYS = 3;
     private static final int DAYS_TO_SEARCH = 7;
 
@@ -38,6 +37,9 @@ public class EventService {
 
     @Autowired
     private VenueRepository venueRepository;
+
+    @Autowired
+    private ConflictLogService conflictLogService;
 
     // ========== DTO Conversion Methods ==========
 
@@ -58,12 +60,27 @@ public class EventService {
             venueName = event.getVenue().getName();
         }
 
-        return new EventResponseDTO(
+        EventResponseDTO dto = new EventResponseDTO(
                 event.getId(), event.getTitle(), event.getDescription(),
                 event.getStartTime(), event.getEndTime(), event.getLocation(),
                 event.getActive(), organizerId, organizerName,
                 venueId, venueName, event.getCreatedAt(), event.getUpdatedAt()
         );
+        dto.setEventType(event.getEventType());
+        dto.setExpectedAttendees(event.getExpectedAttendees());
+        // Set department name from organizer's department
+        if (event.getOrganizer() != null && event.getOrganizer().getDepartmentEntity() != null) {
+            dto.setDepartmentName(event.getOrganizer().getDepartmentEntity().getName());
+        }
+        return dto;
+    }
+
+    private EventResponseDTO convertToResponseDTOWithType(Event event) {
+        EventResponseDTO dto = convertToResponseDTO(event);
+        if (dto != null) {
+            dto.setEventType(event.getEventType());
+        }
+        return dto;
     }
 
     private Event convertToEntity(EventRequestDTO dto) {
@@ -76,6 +93,8 @@ public class EventService {
         event.setEndTime(dto.getEndTime());
         event.setLocation(dto.getLocation());
         event.setActive(dto.getActive() != null ? dto.getActive() : true);
+        event.setEventType(dto.getEventType());
+        event.setExpectedAttendees(dto.getExpectedAttendees());
 
         if (dto.getOrganizerId() != null) {
             User organizer = userRepository.findById(dto.getOrganizerId())
@@ -136,12 +155,14 @@ public class EventService {
                     requestDTO.getStartTime(),
                     requestDTO.getEndTime()
             );
+            // Log the conflict in a SEPARATE transaction so it persists
+            conflictLogService.logConflict(requestDTO, collisionResponse);
             throw new EventCollisionException("Time slot already booked for this venue", collisionResponse);
         }
 
         Event event = convertToEntity(requestDTO);
         Event savedEvent = eventRepository.save(event);
-        return convertToResponseDTO(savedEvent);
+        return convertToResponseDTOWithType(savedEvent);
     }
 
     /**
@@ -167,7 +188,7 @@ public class EventService {
     }
 
     /**
-     * Update event
+     * Update event — excludes current event from conflict check
      */
     public EventResponseDTO updateEvent(Long id, EventRequestDTO requestDTO) {
         Event event = eventRepository.findById(id)
@@ -191,6 +212,8 @@ public class EventService {
                     requestDTO.getStartTime(),
                     requestDTO.getEndTime()
             );
+            // Log the conflict in a SEPARATE transaction
+            conflictLogService.logConflict(requestDTO, collisionResponse);
             throw new EventCollisionException("Time slot already booked for this venue", collisionResponse);
         }
 
@@ -216,8 +239,23 @@ public class EventService {
             event.setVenue(venue);
         }
 
+        if (requestDTO.getEventType() != null) {
+            event.setEventType(requestDTO.getEventType());
+        }
+        if (requestDTO.getExpectedAttendees() != null) {
+            event.setExpectedAttendees(requestDTO.getExpectedAttendees());
+        }
+
         Event updatedEvent = eventRepository.save(event);
         return convertToResponseDTO(updatedEvent);
+    }
+
+    /**
+     * Get events by organizer ID — for "Your Events" page
+     */
+    public List<EventResponseDTO> getEventsByOrganizer(Long organizerId) {
+        return eventRepository.findByOrganizerId(organizerId).stream()
+                .map(this::convertToResponseDTO).collect(Collectors.toList());
     }
 
     public void deleteEvent(Long id) {
@@ -270,9 +308,9 @@ public class EventService {
         // 1. Get conflicting event info
         ConflictingEventInfo conflictingInfo = getConflictingEventInfo(venueId, startTime, endTime);
 
-        // 2. Get alternative time slots (same day, same venue)
+        // 2. Get ALL alternative time slots (same day, same venue) — no cap
         List<TimeSlot> alternativeTimeSlots = findAlternativeTimeSlots(venueId, startTime.toLocalDate(),
-                Duration.between(startTime, endTime));
+                Duration.between(startTime, endTime), startTime);
 
         // 3. Get alternative days (same time, same venue, different date)
         List<AlternativeDay> alternativeDays = findAlternativeDays(venueId, startTime, endTime,
@@ -301,31 +339,33 @@ public class EventService {
         }
         Event conflict = conflicts.get(0);
         String venueName = conflict.getVenue() != null ? conflict.getVenue().getName() : "Unknown";
-        return new ConflictingEventInfo(
+        String organizerName = conflict.getOrganizer() != null ? conflict.getOrganizer().getName() : null;
+        ConflictingEventInfo info = new ConflictingEventInfo(
                 conflict.getTitle(),
                 conflict.getStartTime(),
                 conflict.getEndTime(),
                 venueName,
                 venueId
         );
+        info.setOrganizerName(organizerName);
+        return info;
     }
 
     /**
-     * Find 2-3 available time slots on the same day at the same venue
-     * Scans from 9:00 AM to 5:00 PM in the event's duration-sized windows
+     * Find ALL available time slots on the same day at the same venue.
+     * Scans 8:00 AM to 5:00 PM, returns every valid slot where the event duration fits.
+     * Sorted by proximity to the originally requested time (closest first).
      */
-    private List<TimeSlot> findAlternativeTimeSlots(Long venueId, LocalDate date, Duration eventDuration) {
+    private List<TimeSlot> findAlternativeTimeSlots(Long venueId, LocalDate date, Duration eventDuration,
+                                                     LocalDateTime requestedStart) {
         List<TimeSlot> slots = new ArrayList<>();
         long durationMinutes = eventDuration.toMinutes();
         if (durationMinutes <= 0) durationMinutes = 60; // Default 1 hour
 
         // Get all existing events for this venue on this date
         List<Event> existingEvents = eventRepository.findActiveEventsByVenueAndDate(venueId, date);
-
-        // Sort by start time
         existingEvents.sort(Comparator.comparing(Event::getStartTime));
 
-        // Find gaps between events within operating hours
         LocalDateTime dayStart = LocalDateTime.of(date, DAY_START);
         LocalDateTime dayEnd = LocalDateTime.of(date, DAY_END);
 
@@ -335,20 +375,13 @@ public class EventService {
             busyPeriods.add(new LocalDateTime[]{e.getStartTime(), e.getEndTime()});
         }
 
-        // Find free slots
+        // Find ALL free slots in each gap
+        final long durMin = durationMinutes;
         LocalDateTime cursor = dayStart;
         for (LocalDateTime[] busy : busyPeriods) {
-            if (slots.size() >= MAX_ALTERNATIVE_SLOTS) break;
-
-            // If there's a gap before this busy period
+            // Gap before this busy period
             if (cursor.isBefore(busy[0])) {
-                long gapMinutes = Duration.between(cursor, busy[0]).toMinutes();
-                if (gapMinutes >= durationMinutes) {
-                    LocalDateTime slotEnd = cursor.plusMinutes(durationMinutes);
-                    if (!slotEnd.isAfter(dayEnd)) {
-                        slots.add(new TimeSlot(cursor, slotEnd, "available"));
-                    }
-                }
+                addAllSlotsInGap(slots, cursor, busy[0], durMin, dayEnd);
             }
             // Move cursor past this busy period
             if (busy[1].isAfter(cursor)) {
@@ -356,23 +389,40 @@ public class EventService {
             }
         }
 
-        // Check after last event
-        if (slots.size() < MAX_ALTERNATIVE_SLOTS && cursor.isBefore(dayEnd)) {
-            long gapMinutes = Duration.between(cursor, dayEnd).toMinutes();
-            if (gapMinutes >= durationMinutes) {
-                LocalDateTime slotEnd = cursor.plusMinutes(durationMinutes);
-                if (!slotEnd.isAfter(dayEnd)) {
-                    slots.add(new TimeSlot(cursor, slotEnd, "available"));
-                }
-            }
+        // Gap after last event until end of day
+        if (cursor.isBefore(dayEnd)) {
+            addAllSlotsInGap(slots, cursor, dayEnd, durMin, dayEnd);
         }
+
+        // Sort by proximity to requested time (closest first)
+        slots.sort(Comparator.comparingLong(slot -> {
+            long diff = Math.abs(Duration.between(requestedStart, slot.getStartTime()).toMinutes());
+            return diff;
+        }));
 
         return slots;
     }
 
     /**
-     * Find 2-3 available dates for the same time slot and venue
-     * Checks the next 7 days starting from the day after the requested date
+     * Add all valid slots within a free gap.
+     * Steps through the gap in 30-minute increments to find every fitting window.
+     */
+    private void addAllSlotsInGap(List<TimeSlot> slots, LocalDateTime gapStart, LocalDateTime gapEnd,
+                                   long durationMinutes, LocalDateTime dayEnd) {
+        LocalDateTime slotStart = gapStart;
+        while (true) {
+            LocalDateTime slotEnd = slotStart.plusMinutes(durationMinutes);
+            // Slot must fit within the gap AND within day hours
+            if (slotEnd.isAfter(gapEnd) || slotEnd.isAfter(dayEnd)) break;
+            slots.add(new TimeSlot(slotStart, slotEnd, "available"));
+            // Advance by 30 minutes to find overlapping-start alternatives
+            slotStart = slotStart.plusMinutes(30);
+        }
+    }
+
+    /**
+     * Find 3 available dates for the same time slot and venue.
+     * Checks the next 7 days starting from the day after the requested date.
      */
     private List<AlternativeDay> findAlternativeDays(Long venueId, LocalDateTime startTime,
                                                       LocalDateTime endTime, LocalDate requestedDate) {
@@ -385,7 +435,6 @@ public class EventService {
             LocalDateTime candidateStart = LocalDateTime.of(candidateDate, requestedStartTime);
             LocalDateTime candidateEnd = LocalDateTime.of(candidateDate, requestedEndTime);
 
-            // Check if this slot is free
             boolean hasConflict = eventRepository.existsEventConflict(venueId, candidateStart, candidateEnd);
             if (!hasConflict) {
                 alternatives.add(new AlternativeDay(candidateDate, candidateStart, candidateEnd));
@@ -396,8 +445,8 @@ public class EventService {
     }
 
     /**
-     * Find available venues at the same time and date
-     * Returns all venues (except the conflicting one) that have no events during the requested time
+     * Find available venues at the same time and date.
+     * Returns all venues (except the conflicting one) that have no events during the requested time.
      */
     private List<VenueResponseDTO> findAlternativeVenues(LocalDateTime startTime, LocalDateTime endTime,
                                                           Long excludeVenueId) {

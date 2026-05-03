@@ -11,8 +11,12 @@ export default function Navbar({ activeRoute, onNavigate }) {
     { id: 'dashboard', label: 'Dashboard', icon: 'grid_view' },
     { id: 'events', label: 'Events', icon: 'event' },
     { id: 'create-event', label: 'Create Event', icon: 'add_circle' },
-    // Only show Admin link for ADMIN users
-    ...(isAdmin ? [{ id: 'admin', label: 'Admin', icon: 'admin_panel_settings' }] : []),
+    { id: 'your-events', label: 'Your Events', icon: 'person' },
+    // Only show Analytics and Admin links for ADMIN users
+    ...(isAdmin ? [
+      { id: 'analytics', label: 'Analytics', icon: 'analytics' },
+      { id: 'admin', label: 'Admin', icon: 'admin_panel_settings' },
+    ] : []),
   ];
 
   const getInitials = (name) => {
@@ -25,15 +29,20 @@ export default function Navbar({ activeRoute, onNavigate }) {
     setMobileOpen(false);
   };
 
+  // Logo click → redirect to home based on role
+  const handleLogoClick = () => {
+    const dest = isAdmin ? 'admin' : 'dashboard';
+    handleNav(dest);
+  };
+
   return (
     <>
       <nav className="navbar">
         <div className="navbar-left">
-          <div className="navbar-brand">
+          <div className="navbar-brand" onClick={handleLogoClick} style={{ cursor: 'pointer' }}>
             <div className="navbar-brand-icon">
-              <img src="/slogo.png" style={{ height: '200px', width: 'auto' }} alt="SlotWise" />
+              <img src="/mlogo.png" alt="SlotWise" className="navbar-logo-img" />
             </div>
-            <span className="navbar-brand-text">SlotWise</span>
           </div>
           <div className="navbar-links">
             {links.map((link) => (
@@ -51,9 +60,9 @@ export default function Navbar({ activeRoute, onNavigate }) {
           <button className="navbar-mobile-toggle" onClick={() => setMobileOpen(!mobileOpen)}>
             <span className="material-symbols-outlined">{mobileOpen ? 'close' : 'menu'}</span>
           </button>
-          <button className="navbar-notification" title="Notifications">
+          {/* <button className="navbar-notification" title="Notifications">
             <span className="material-symbols-outlined">notifications</span>
-          </button>
+          </button> */}
           <div className="navbar-user">
             <div className="navbar-user-info">
               <span className="navbar-user-name">{user?.name || 'User'}</span>
