@@ -29,10 +29,9 @@ export default function Navbar({ activeRoute, onNavigate }) {
     setMobileOpen(false);
   };
 
-  // Logo click → redirect to home based on role
+  // Logo click → always redirect to dashboard for all users
   const handleLogoClick = () => {
-    const dest = isAdmin ? 'admin' : 'dashboard';
-    handleNav(dest);
+    handleNav('dashboard');
   };
 
   return (
